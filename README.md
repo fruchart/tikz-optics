@@ -13,10 +13,10 @@ Alternatively, you can directly `\input` it in your tex file.
 ## Usage
 
 Use the option `use optics` on a `tikzpicture` to enable the library. Here is a very simple example of code
-
+```
 \begin{tikzpicture}[use optics]
 	\node[lens] at (0,0) {};
 	\node[mirror] at (1cm,0) {};
 \end{tikzpicture}
-
+```
 For more details, please see the documentation.
