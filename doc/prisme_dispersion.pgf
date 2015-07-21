@@ -1,0 +1,72 @@
+\begin{tikzpicture}
+  \newdimen\hauteurVerre
+  \newdimen\largeurVerre
+  \newdimen\distanceSource
+  \newdimen\hauteurSource
+  \newdimen\distanceEcran
+  \pgfmathsetlength\hauteurVerre{2cm}
+  \pgfmathsetlength\largeurVerre{1cm}
+  \pgfmathsetlength\distanceSource{1cm}
+  \pgfmathsetlength\hauteurSource{1cm}
+  % ceci ne sert desormais plus, l'indice etant calcule avec la loi de Cauchy
+  \pgfmathsetmacro\glassIndex{1.74}
+  \pgfmathsetlength\distanceEcran{1cm}
+
+  \coordinate (A) at (0,\hauteurVerre);
+  \coordinate (B) at (0,0);
+  \coordinate (C) at (\largeurVerre,0);
+
+  % dessin du prisme
+  \draw (A) -- (B) -- (C) -- cycle;
+
+  % loi de Cauchy : nCauchyGlass(lambda en \mu m)
+  % verre : dense flint glass SF10 
+  % "source" : http://en.wikipedia.org/w/index.php?title=Cauchy%27s_equation&oldid=542426286
+  \pgfkeys{/pgf/declare function={nCauchyGlass(\lb)=1.7280+0.01345/(\lb^2);}}
+
+  % source
+  \coordinate (S) at (-\distanceSource,\hauteurSource);
+
+  % trace des rayons
+  \foreach \wavelength in {0.45,0.475,0.5,0.55,0.6,0.65,0.7}
+  \foreach \x in {-0.1,0,0.1,0.2,...,1}
+  {
+    \pgfmathsetmacro{\glassIndex}{nCauchyGlass(\wavelength)}
+    \pgfmathtruncatemacro{\wlnm}{1000*\wavelength}
+    \definecolor{current ray color}{wave}{\wlnm}
+    \pgfmathsetmacro\inAngle{atan((\hauteurSource-\x*\hauteurVerre)/\distanceSource)}
+    % si le rayon ne croise pas le prisme, pas de deflexion du rayon
+    \pgfmathtruncatemacro\noDeflexion{or(notgreater(\x,0),notless(\x,1))}
+    \ifnum\noDeflexion=1
+      \draw[dashed,current ray color] (S)
+        -- (\distanceEcran,{tan(\inAngle)*(\distanceEcran+\largeurVerre+\distanceSource)});
+    \else
+      \pgfmathsetmacro\midAngle{asin((1/\glassIndex)*sin(\inAngle))}
+      \pgfmathsetmacro\y{\x*(1+\largeurVerre/\hauteurVerre*tan(\midAngle))^(-1)}
+      \pgfmathsetmacro\appexAngle{atan(\largeurVerre/\hauteurVerre)}
+      \pgfmathsetmacro\snellSine{\glassIndex*sin(-\appexAngle+\midAngle)}
+
+      % est-ce que le rayon coupe le bas du prisme ?
+      \pgfmathtruncatemacro\goesOut{greater(\y,1)}
+      \ifnum\goesOut=1
+        % je ne dessine pas les rayons qui couperaient le bas du prisme
+      \else
+        % est-ce qu'il y a reflexion totale ?
+        \pgfmathtruncatemacro\totalReflexion{notgreater(abs(\snellSine),1)}
+        \ifnum\totalReflexion=1
+          \newdimen\screenY
+          \pgfmathsetlength\screenY{
+          (1-\y)*\hauteurVerre + tan(asin(\snellSine)+\appexAngle)*
+              (\largeurVerre+\distanceEcran - \largeurVerre*\y)
+          }
+          \draw[current ray color] (S) -- (\largeurVerre*0,{(1-\x)*\hauteurVerre})
+            -- (\largeurVerre*\y,{(1-\y)*\hauteurVerre})
+            -- (\largeurVerre+\distanceEcran,\screenY);
+        \else
+          \draw[dotted,current ray color] (S) -- (\largeurVerre*0,{(1-\x)*\hauteurVerre})
+            -- (\largeurVerre*\y,{(1-\y)*\hauteurVerre});
+        \fi
+      \fi
+    \fi
+  }
+\end{tikzpicture}

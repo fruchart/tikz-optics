@@ -1,0 +1,2494 @@
+\iffalse
+The tikzoptics library
+
+Copyright (C) 2013-2015 by
+  Michel Fruchart <michel.fruchart@ens-lyon.org>
+
+This work may be distributed and/or modified under the conditions of
+the LaTeX Project Public License (LPPL), version 1.3c, which can be
+found at the address:
+http://latex-project.org/lppl/lppl-1-3c.txt
+
+Alternatively, it may be distributed and/or modified under the conditions of
+the GNU General Public License (GNU GPL), version 2, which can be found
+at the address:
+http://www.gnu.org/licenses/gpl-2.0.en.html
+or any later version published by the Free Software Foundation.
+\fi
+\makeatletter
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% errors from this library
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\opticserror#1{\pgfutil@packageerror{tikz/optics}{#1}{}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% handler |collect unknowns|
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% from http://tex.stackexchange.com/questions/81821/filtering-options-with-pgfkeys/81985#81985
+% used by /tikz/optics/->n-
+%
+\pgfkeys{
+  /handlers/.collect unknowns/.style = {
+    unknown options/.initial = {},
+    .unknown/.code = {%
+      \letcs\reserved{pgfk@\pgfkeyscurrentpath/unknown options}%
+      \csedef{pgfk@\pgfkeyscurrentpath/unknown options}{%
+        \ifx\reserved\empty\else\expandonce\reserved,\fi
+        \expandonce\pgfkeyscurrentname
+        \ifx\pgfkeysnovalue##1\else=\expandonce\pgfkeyscurrentvalue\fi
+      }%
+    }
+  }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% defining |optics| family
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pgfkeys{
+  /tikz/.cd,
+  optics/.is family,
+  optics/.search also={/tikz},
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [use optics] 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pgfkeys{
+  /tikz/use optics/.append code={
+  \pgfkeys{
+    /tikz/.cd,
+      % shapes 
+      % FIXME il ne devrait pas y avoir de logique (ni de valeurs par défaut) ici, seulement l'export dans l'espace de nom commun
+      lens/.prefix style={shape=lens,optics,draw},
+      slit/.prefix style={shape=slit,optics,draw},
+      double slit/.prefix style={shape=double slit,optics,draw},
+      thin optics element/.prefix style={shape=thin optics element,optics,draw},
+      polarizer/.prefix style={shape=polarizer,optics,draw,object aspect ratio=0.1},
+      generic optics io/.prefix style={shape=generic optics io,optics,draw},
+      sensor/.prefix style={shape=sensor,optics,object aspect ratio=1,draw},
+      sensor line/.prefix style={shape=sensor line,optics,draw},
+      mirror/.prefix style={shape=mirror,optics,draw},
+      spherical mirror/.prefix style={shape=spherical mirror,optics,draw},
+      thick optics element/.prefix style={shape=thick optics element,optics,draw,object aspect ratio=0.1},
+      heat filter/.prefix style={shape=thick optics element,optics,draw, object aspect ratio=0.05},
+      double amici prism/.prefix style={shape=double amici prism,optics,draw, prism height=1cm, prism apex angle=60},
+      % styles
+      screen/.prefix style={optics,/tikz/optics/screen},
+      diffraction grating/.style={optics,/tikz/optics/diffraction grating},
+      grid/.style={optics, /tikz/optics/grid},
+      semi-transparent mirror/.style={optics, /tikz/optics/semi-transparent mirror},
+      diaphragm/.style={optics, /tikz/optics/diaphragm},
+      beam splitter/.prefix style={optics,/tikz/optics/beam splitter},
+      generic lamp/.prefix style={optics,/tikz/optics/generic lamp},
+      generic sensor/.prefix style={optics,/tikz/optics/generic sensor},
+      halogen lamp/.prefix style={optics,/tikz/optics/halogen lamp},
+      spectral lamp/.prefix style={optics,/tikz/optics/spectral lamp},
+      laser/.prefix style={optics,/tikz/optics/laser},
+      laser'/.prefix style={optics,/tikz/optics/laser'},
+      concave mirror/.prefix style={optics, /tikz/optics/concave mirror},
+      convex mirror/.prefix style={optics, /tikz/optics/convex mirror},
+      % arrows (styles)
+      ->-/.prefix style={optics,/tikz/optics/->-={##1}},
+      -<-/.prefix style={optics,/tikz/optics/-<-={##1}},
+      ->>-/.prefix style={optics,/tikz/optics/->>-={##1}},
+      -<<-/.prefix style={optics,/tikz/optics/-<<-={##1}},
+      ->>>-/.prefix style={optics,/tikz/optics/->>>-={##1}},
+      -<<<-/.prefix style={optics,/tikz/optics/-<<<-={##1}},
+      ->>>>-/.prefix style={optics,/tikz/optics/->>>>-={##1}},
+      -<<<<-/.prefix style={optics,/tikz/optics/-<<<<-={##1}},
+      ->n-/.prefix style={optics,/tikz/optics/->n-={##1}},
+      -<n-/.prefix style={optics,/tikz/optics/-<n-={##1}},
+    }
+  }
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Key |object height|
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pgfkeys{/tikz/optics/.cd,
+  object height/.initial=2cm,
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [thin optics element]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pgfdeclareshape{thin optics element}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/object height}}%
+  }
+
+  \savedanchor{\north}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{north}{\north}
+
+  \savedanchor{\south}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south}{\south}
+
+  \anchor{east}{\center}
+  \anchor{west}{\center}
+
+  \anchorborder{%
+    \pgf@xb=\pgf@x% xb/yb is target
+    \pgf@yb=\pgf@y%
+    \south%
+    \pgf@xa=\pgf@x% xa/ya is se
+    \pgf@ya=\pgf@y%
+    \north%
+    \advance\pgf@x by-\pgf@xa%
+    \advance\pgf@y by-\pgf@ya%
+    \pgf@xc=.5\pgf@x% x/y is half width/height
+    \pgf@yc=.5\pgf@y%
+    \advance\pgf@xa by\pgf@xc% xa/ya becomes center
+    \advance\pgf@ya by\pgf@yc%
+    \edef\pgf@marshal{%
+      \noexpand\pgfpointborderrectangle
+      {\noexpand\pgfpoint{\the\pgf@xb}{\the\pgf@yb}}
+      {\noexpand\pgfpoint{\the\pgf@xc}{\the\pgf@yc}}%
+    }%
+    \pgf@process{\pgf@marshal}%
+    \advance\pgf@x by\pgf@xa%
+    \advance\pgf@y by\pgf@ya%
+  }
+
+  \backgroundpath
+  {
+    \north \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \south \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+  }
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [lens]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\iftikz@optics@lens@converging
+\tikz@optics@lens@convergingtrue
+
+% keys
+% - focal lens is used to define anchors |east focus| and |west focus|
+% - lens height is used to define anchors |lens north| and |lens south|
+% - lens type (converging or diverging)
+\pgfkeys{/tikz/optics/.cd,
+  focal length/.initial=1cm,
+  lens height/.initial=0.8,
+  lens type/.is choice,
+  lens type/converging/.code={\tikz@optics@lens@convergingtrue},
+  lens type/diverging/.code={\tikz@optics@lens@convergingfalse}
+}
+\pgfdeclareshape{lens}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\focalLength{%
+    \edef\focalLength{\pgfkeysvalueof{/tikz/optics/focal length}}%
+  }
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/object height}}%
+  }
+
+  \savedmacro\lensHeight{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/lens height}}%
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\lensHeight}{\pgfkeysvalueof{/tikz/optics/lens height}}%
+    \else%
+      \pgfmathsetlengthmacro{\lensHeight}{\pgfkeysvalueof{/tikz/optics/lens height}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+  }
+
+  \savedanchor{\lensnorth}{
+    \pgfpointorigin
+    \pgf@y=\lensHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{lens north}{\lensnorth}
+
+  \savedanchor{\lenssouth}{
+    \pgfpointorigin
+    \pgf@y=\lensHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{lens south}{\lenssouth}
+
+  \savedanchor{\north}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{north}{\north}
+
+  \savedanchor{\south}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south}{\south}
+
+  \savedanchor{\eastfocal}{
+    \pgf@x=\focalLength%
+    \pgf@y=0cm%
+  }
+  \anchor{east focal point}{\eastfocal}
+  \anchor{east focus}{\eastfocal}
+  
+
+  \savedanchor{\westfocal}{
+    \pgf@x=-\focalLength%
+    \pgf@y=0cm%
+  }
+  \anchor{west focal point}{\westfocal}
+  \anchor{west focus}{\westfocal}
+
+  \anchor{east}{\center}
+  \anchor{west}{\center}
+
+  \inheritanchorborder[from=thin optics element]
+
+  \backgroundpath
+  {
+    \north \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \south \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+
+    \iftikz@optics@lens@converging
+      \pgfsetarrowsstart{lens arrow}
+      \pgfsetarrowsend{lens arrow}
+    \else
+      \pgfsetarrowsstart{lens arrow reversed}
+      \pgfsetarrowsend{lens arrow reversed}
+    \fi
+  }
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [slit]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% keys : slit height
+\pgfkeys{/tikz/optics/.cd,
+  slit height/.initial=0.1
+}
+
+\pgfdeclareshape{slit}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+  \anchor{slit center}{\center} 
+  % TODO par cohérence ?
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/object height}}%
+  }
+
+  \savedmacro\slitHeight{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/slit height}}%
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\slitHeight}{\pgfkeysvalueof{/tikz/optics/slit height}}%
+    \else%
+      \pgfmathsetlengthmacro{\slitHeight}{\pgfkeysvalueof{/tikz/optics/slit height}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+  }
+
+  \savedanchor{\north}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{north}{\north}
+
+  \savedanchor{\south}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south}{\south}
+
+  \savedanchor{\slitnorth}{
+    \pgf@x=0cm%
+    \pgf@y=\slitHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{slit north}{\slitnorth}
+
+  \savedanchor{\slitsouth}{
+    \pgf@x=0cm%
+    \pgf@y=\slitHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{slit south}{\slitsouth}
+
+  \anchor{east}{\center}
+  \anchor{west}{\center}
+
+  \inheritanchorborder[from=thin optics element]
+
+  \backgroundpath
+  {
+    % erreurs possibles dans la spécification du dessin
+    \pgfmathparse{notless(\slitHeight, \objectHeight)}
+    \ifnum\pgfmathresult=1
+      \opticserror{<slit height> should be strictly lower than <object height> (in slit)}
+    \fi
+    \north \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \slitnorth \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+
+    \south \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \slitsouth \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+  }
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [double slit]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% keys :
+% - slit height : (relative) height of the holes (each)
+% - slit separation : (relative) distance between the centers of the holes
+\pgfkeys{/tikz/optics/.cd,
+  object height/.initial=2cm,
+  slit height/.initial=0.075,
+  slit separation/.initial=0.2
+}
+
+\pgfdeclareshape{double slit}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+  
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/object height}}%
+  }
+
+  \savedmacro\slitHeight{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/slit height}}%
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\slitHeight}{\pgfkeysvalueof{/tikz/optics/slit height}}%
+    \else%
+      \pgfmathsetlengthmacro{\slitHeight}{\pgfkeysvalueof{/tikz/optics/slit height}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+  }
+
+  \savedmacro\slitSeparation{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/slit separation}}%
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\slitSeparation}{\pgfkeysvalueof{/tikz/optics/slit separation}}%
+    \else%
+      \pgfmathsetlengthmacro{\slitSeparation}{\pgfkeysvalueof{/tikz/optics/slit separation}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+  }
+
+  \savedmacro\macro@slitOneCenter{
+    \def\macro@slitOneCenter{
+      \pgfpointorigin
+      \pgf@ya=\slitSeparation
+      \pgf@ya=0.5\pgf@ya
+      \advance \pgf@y by \pgf@ya
+    }
+  }
+
+  \savedmacro\macro@slitTwoCenter{
+    \def\macro@slitTwoCenter{
+      \pgfpointorigin
+      \pgf@ya=\slitSeparation
+      \pgf@ya=-0.5\pgf@ya
+      \advance \pgf@y by \pgf@ya
+    }
+  }
+
+  \savedanchor{\north}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{north}{\north}
+
+  \savedanchor{\south}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south}{\south}
+
+  % slit 1
+  \savedanchor{\slitOneCenter}{
+    \macro@slitOneCenter
+  }
+  \anchor{slit 1 center}{\slitOneCenter}
+
+  \savedanchor{\slitOneNorth}{
+    \macro@slitOneCenter
+    \pgf@ya = \slitHeight
+    \pgf@ya = 0.5\pgf@ya
+    \advance \pgf@y by \pgf@ya
+  }
+  \anchor{slit 1 north}{\slitOneNorth}
+
+  \savedanchor{\slitOneSouth}{
+    \macro@slitOneCenter
+    \pgf@ya = \slitHeight
+    \pgf@ya = -0.5\pgf@ya
+    \advance \pgf@y by \pgf@ya
+  }
+  \anchor{slit 1 south}{\slitOneSouth}
+
+  % slit 2
+  \savedanchor{\slitTwoCenter}{
+    \macro@slitTwoCenter
+  }
+  \anchor{slit 2 center}{\slitTwoCenter}
+
+  \savedanchor{\slitTwoNorth}{
+    \macro@slitTwoCenter
+    \pgf@ya = \slitHeight
+    \pgf@ya = 0.5\pgf@ya
+    \advance \pgf@y by \pgf@ya
+  }
+  \anchor{slit 2 north}{\slitTwoNorth}
+
+  \savedanchor{\slitTwoSouth}{
+    \macro@slitTwoCenter
+    \pgf@ya = \slitHeight
+    \pgf@ya = -0.5\pgf@ya
+    \advance \pgf@y by \pgf@ya
+  }
+  \anchor{slit 2 south}{\slitTwoSouth}
+
+  \anchor{east}{\center}
+  \anchor{west}{\center}
+
+  \inheritanchorborder[from=thin optics element]
+
+  \backgroundpath
+  {
+    % erreurs possibles dans les spécifications du dessin
+    \pgfmathparse{notgreater(\slitSeparation, \slitHeight)}
+    \ifnum\pgfmathresult=1
+      \opticserror{<slit separation> should be strictly lower than <slit height> (in double slit)}
+    \fi
+    \pgfmathparse{notless(\slitSeparation+\slitHeight, \objectHeight)}
+    \ifnum\pgfmathresult=1
+      \opticserror{<slit height> plus <slit separation> should be strictly lower than <object height> (in double slit)}
+    \fi
+    \north \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \slitOneNorth \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+
+    \slitOneSouth \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \slitTwoNorth \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+
+    \slitTwoSouth \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \south \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+  }
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [mirror]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% keys
+% - mirror decoration separation
+% - mirror decoration amplitude
+\pgfkeys{/tikz/optics/.cd,
+  object height/.initial=2cm,
+  mirror decoration separation/.initial=0.15cm,
+  mirror decoration amplitude/.initial=0.125cm,
+}
+
+\pgfdeclareshape{mirror}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/object height}}%
+  }
+
+  \savedanchor{\north}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{north}{\north}
+
+  \savedanchor{\south}{
+    \pgf@x=0cm%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south}{\south}
+
+  \anchor{east}{\center}
+  \anchor{west}{\center}
+
+  % bof
+  \inheritanchorborder[from=thin optics element]
+
+  \backgroundpath
+  {
+    \north \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \south \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    % We use a border decoration to make a mirror (hachures).
+    % First set the decoration parameters :
+    % - decoration angle
+    % l'angle est 45-180 et on multiplie l'amplitude par -1 pour que la décoration commence et finisse par un trait (c'est un peu louche mais bon)
+    \def\pgfdecorationsegmentangle{45-180}%
+    % - decoration step length
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/mirror decoration separation}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentlength}{\pgfkeysvalueof{/tikz/optics/mirror decoration separation}}%
+    \else%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentlength}{\pgfkeysvalueof{/tikz/optics/mirror decoration separation}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+    % magouillons pour que \pgfdecorationsegmentlength soit un multiple de la longueur ...
+    \pgfmathsetmacro\initialstep{\pgfdecorationsegmentlength} 
+    \pgfmathsetmacro\totallength{\pgfkeysvalueof{/tikz/optics/object height}} 
+    \pgfmathsetmacro\newstep{\totallength/floor(\totallength/\initialstep)} 
+    \pgfmathsetlengthmacro{\pgfdecorationsegmentlength}{\newstep}
+    % fin magouille
+    % - decoration amplitude
+    % on multiplie par -1 pour que ça aille dans le bon sens (pour éviter des problèmes louches)
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/mirror decoration amplitude}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentamplitude}{-1*\pgfkeysvalueof{/tikz/optics/mirror decoration amplitude}}%
+    \else%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentamplitude}{-1*\pgfkeysvalueof{/tikz/optics/mirror decoration amplitude}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+    % Use decoration.
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+    \pgfdecoratecurrentpath{border} %
+    % dessin du miroir (trait)
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+  }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [spherical mirror]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% keys :
+% - spherical mirror angle : the aperture angle of the mirror
+% - spherical mirror type (concave or convex)
+% - spherical mirror orientation (ltr or rtl)
+% The properties of the decoration are controled by the same parameters as in [mirror].
+% Height is controled by |object height|, as usual.
+\pgfkeys{/tikz/optics/spherical mirror angle/.initial=150}
+
+\newif\iftikz@optics@sphericalmirror@concave
+\tikz@optics@sphericalmirror@concavetrue
+\pgfkeys{/tikz/optics/.cd,
+  spherical mirror type/.is choice,
+  spherical mirror type/concave/.code={\tikz@optics@sphericalmirror@concavetrue},
+  spherical mirror type/convex/.code={\tikz@optics@sphericalmirror@concavefalse}
+}
+
+\newif\iftikz@optics@sphericalmirror@ltr
+\tikz@optics@sphericalmirror@ltrtrue
+\pgfkeys{/tikz/optics/.cd,
+  spherical mirror orientation/.is choice,
+  spherical mirror orientation/ltr/.code={\tikz@optics@sphericalmirror@ltrtrue},
+  spherical mirror orientation/rtl/.code={\tikz@optics@sphericalmirror@ltrfalse}
+}
+
+% shortcuts (styles) : [concave mirror] and [convex mirror]
+\pgfkeys{/tikz/optics/.cd,
+      concave mirror/.style={optics, spherical mirror, /tikz/optics/spherical mirror type=concave},
+      convex mirror/.style={optics, spherical mirror, /tikz/optics/spherical mirror type=convex},
+}
+
+\pgfdeclareshape{spherical mirror}{%
+  \savedmacro\installsphericalmirrorparameters{%
+    %
+    % Define a \centerpoint
+    %
+    \pgfextract@process\centerpoint{%
+      \pgfpointorigin
+    }%
+    %
+    % Define height
+    %
+    \pgfmathsetlengthmacro\height{\pgfkeysvalueof{/tikz/optics/object height}}%
+    %
+    % Function to define angle from radius
+    % use e.g. [spherical mirror angle=from_radius(2cm)] instead of e.g. [spherical mirror angle=90]
+    % This can seem somewhat ridiculous as we will undo this when calculating \radius, however it helps providing a simpler API.
+    % This function has to be defined before parsing \pgfkeysvalueof{/tikz/optics/spherical mirror angle}.
+    %
+    \pgfmathdeclarefunction{from_radius}{1}{
+      \begingroup
+      \pgfmathparse{notless(2*#1,\height)}
+      \ifnum\pgfmathresult=0
+        \opticserror{(in /tikz/optics/spherical mirror angle=from_radius(R)) : for a spherical mirror, the radius R cannot be smaller than half the height </tikz/optics/object height>. Set a bigger radius of a smaller height.}
+      \fi
+      \newdimen\angle
+      \pgfmathsetlength\angle{2*asin(\height/(2*#1))}
+      \pgf@x=\angle
+      \pgfmathreturn\pgf@x
+      \endgroup
+    }
+    %
+    % Define angle
+    %
+    \pgfmathsetmacro\angle{\pgfkeysvalueof{/tikz/optics/spherical mirror angle}}
+    %
+    % Compute radius from height and angle
+    %
+    \pgfmathsetlengthmacro\radius{\height/(2*sin(\angle/2))}
+    %
+    % Half of the sector angle is more useful.
+    %
+    \pgfmathmod{\angle}{360}%
+    \ifdim\pgfmathresult pt<0pt\relax%
+      \pgfmathadd@{\pgfmathresult}{360}%
+    \fi%
+    \let\angle\pgfmathresult%
+    \pgfmathdivide@{\pgfmathresult}{2}%
+    \let\halfangle\pgfmathresult%
+    %
+    % Get the start and end angles of the arc.
+    %
+    \iftikz@optics@sphericalmirror@concave
+      \iftikz@optics@sphericalmirror@ltr
+        \pgfmathsetmacro\startangle{-\halfangle}
+        \pgfmathsetmacro\endangle{+\halfangle}
+      \else
+        \pgfmathsetmacro\startangle{180-\halfangle}
+        \pgfmathsetmacro\endangle{180+\halfangle}
+      \fi
+      \else
+      \iftikz@optics@sphericalmirror@ltr
+        \pgfmathsetmacro\startangle{180-\halfangle}
+        \pgfmathsetmacro\endangle{180+\halfangle}
+      \else
+        \pgfmathsetmacro\startangle{-\halfangle}
+        \pgfmathsetmacro\endangle{+\halfangle}
+      \fi
+    \fi
+    % 
+    % Calculate R cos(angle/2) and R sin(angle/2)
+    % 
+    \pgfmathabs@{\halfangle}%
+    \pgfmathcos@{\pgfmathresult}%
+    \let\coshalfangle\pgfmathresult%
+    \pgfmathabs@{\halfangle}%
+    \pgfmathsin@{\pgfmathresult}%
+    \let\sinhalfangle\pgfmathresult%
+    \pgfmathsetlength\pgf@xa{\radius*\coshalfangle}
+    \edef\rcoshalfangle{\the\pgf@xa}%
+    \pgfmathsetlength\pgf@xa{\radius*\sinhalfangle}
+    \edef\rsinhalfangle{\the\pgf@xa}%
+    %
+    % Calculate the arc coordinates
+    %
+    \pgfextract@process\arcstart{%
+      \pgfqpointpolar{\startangle}{\radius}%
+      \pgf@xa\pgf@x%
+      \pgf@ya\pgf@y%
+      \centerpoint%
+      \advance\pgf@x\pgf@xa%
+      \advance\pgf@y\pgf@ya%
+    }%
+    \pgfextract@process\arcend{%
+      \pgfqpointpolar{\endangle}{\radius}%
+      \pgf@xa\pgf@x%
+      \pgf@ya\pgf@y%
+      \centerpoint%
+      \advance\pgf@x\pgf@xa%
+      \advance\pgf@y\pgf@ya%
+    }%
+    \def\convexrtlsetx#1#2{
+      \iftikz@optics@sphericalmirror@concave%
+        \iftikz@optics@sphericalmirror@ltr%
+          \advance\pgf@x by #1
+        \else% % => rtl
+          \advance\pgf@x by #2
+        \fi%
+      \else% % => convex
+        \iftikz@optics@sphericalmirror@ltr%
+          \advance\pgf@x by #2
+        \else% % => rtl
+          \advance\pgf@x by #1
+        \fi%
+      \fi%
+    }
+    \def\convexrtlinvert{%
+      \iftikz@optics@sphericalmirror@concave%
+        \iftikz@optics@sphericalmirror@ltr%
+          %nothing
+        \else% % => rtl
+          \pgf@x=-\pgf@x%
+        \fi%
+      \else% % => convex
+        \iftikz@optics@sphericalmirror@ltr%
+          \pgf@x=-\pgf@x%
+        \else% % => rtl
+          %nothing
+        \fi%
+      \fi%
+    }%
+    %
+    % Save everything. 
+    % "NB \addtosavedmacro is currently experimental. May get changed." d'après le code où je l'ai piqué
+    %
+    \addtosavedmacro{\radius}%
+    %
+    \addtosavedmacro{\rcoshalfangle}%
+    \addtosavedmacro{\rsinhalfangle}%
+    %
+    \addtosavedmacro{\endangle}%
+    \addtosavedmacro{\startangle}%
+    %
+    \addtosavedmacro{\centerpoint}%
+    \addtosavedmacro{\arcstart}%
+    \addtosavedmacro{\arcend}%
+     \addtosavedmacro{\convexrtlinvert}%
+    %
+  }%
+  %
+  % Define anchors
+  %
+  \savedanchor\mirrorcenterpoint{%
+    \pgfpointorigin
+  }%
+  \savedanchor\centerpoint{%
+    \pgfpointorigin%
+    \advance\pgf@x by \radius%
+    \advance\pgf@x by \rcoshalfangle%
+    \iftikz@optics@sphericalmirror@concave%
+      \iftikz@optics@sphericalmirror@ltr%
+        %nothing
+      \else% % => rtl
+        \pgf@x=-\pgf@x%
+      \fi%
+    \else% % => convex
+      \iftikz@optics@sphericalmirror@ltr%
+        \pgf@x=-\pgf@x%
+      \else% % => rtl
+        %nothing
+      \fi%
+    \fi%
+    \divide\pgf@x by 2%
+  }%
+  \savedanchor\focalpoint{%
+    \pgfpointorigin%
+    \pgf@xa=\radius%
+    \advance\pgf@x by .5\pgf@xa%
+    \iftikz@optics@sphericalmirror@concave%
+      \iftikz@optics@sphericalmirror@ltr%
+        %nothing
+      \else% % => rtl
+        \pgf@x=-\pgf@x%
+      \fi%
+    \else% % => convex
+      \iftikz@optics@sphericalmirror@ltr%
+        \pgf@x=-\pgf@x%
+      \else% % => rtl
+        %nothing
+      \fi%
+    \fi%
+  }%
+  \savedanchor\north{%
+    \pgfpointorigin
+    \pgf@xa=0pt
+    \advance\pgf@xa by \rcoshalfangle
+    \advance\pgf@xa by \radius
+    \divide\pgf@xa by 2
+    \advance\pgf@x by \pgf@xa
+    \advance\pgf@y by \rsinhalfangle
+    \convexrtlinvert
+  }%
+  \savedanchor\arccenter{%
+    \centerpoint
+    \advance\pgf@x by \radius
+    \convexrtlinvert
+  }
+  \savedanchor\south{%
+    \pgfpointorigin
+    \pgf@xa=0pt
+    \advance\pgf@xa by \rcoshalfangle
+    \advance\pgf@xa by \radius
+    \divide\pgf@xa by 2
+    \advance\pgf@x by \pgf@xa
+    \advance\pgf@y by -\rsinhalfangle
+    \convexrtlinvert
+  }
+  \savedanchor\east{%
+    \pgfpointorigin
+    \convexrtlsetx{\radius}{\rcoshalfangle}
+    \convexrtlinvert
+  }
+  \savedanchor\west{%
+    \pgfpointorigin
+    \convexrtlsetx{\rcoshalfangle}{\radius}
+    \convexrtlinvert
+  }
+  \savedanchor\northwest{%
+    \pgfpointorigin
+    \convexrtlsetx{\rcoshalfangle}{\radius}
+    \advance\pgf@y by \rsinhalfangle
+    \convexrtlinvert
+  }
+  \savedanchor\southwest{%
+    \pgfpointorigin
+    \convexrtlsetx{\rcoshalfangle}{\radius}
+    \advance\pgf@y by -\rsinhalfangle
+    \convexrtlinvert
+  }
+  \savedanchor\northeast{%
+    \pgfpointorigin
+    \convexrtlsetx{\radius}{\rcoshalfangle}
+    \advance\pgf@y by \rsinhalfangle
+    \convexrtlinvert
+  }
+  \savedanchor\southeast{%
+    \pgfpointorigin
+    \convexrtlsetx{\radius}{\rcoshalfangle}
+    \advance\pgf@y by -\rsinhalfangle
+    \convexrtlinvert
+  }
+  \anchor{arc start}{%
+    \installsphericalmirrorparameters%
+    \arcstart%
+  }
+  \anchor{arc end}{%
+    \installsphericalmirrorparameters%
+    \arcend%
+  }
+  \anchor{focal point}{%
+    \installsphericalmirrorparameters%
+    \focalpoint
+  }
+  \anchor{focus}{%
+    \installsphericalmirrorparameters%
+    \focalpoint
+  }
+  \anchor{mirror center}{\mirrorcenterpoint}  
+  \anchor{center}{\centerpoint} 
+  \anchor{arc center}{\arccenter}
+  \anchor{north}{\north}%
+  \anchor{south}{\south}%
+  \anchor{east}{\east}%
+  \anchor{west}{\west}%
+  \anchor{north west}{\northwest}%
+  \anchor{south west}{\southwest}%
+  \anchor{north east}{\northeast}%
+  \anchor{south east}{\southeast}%
+  %
+  % Draw backgroundpath
+  %
+  \backgroundpath{%
+    \installsphericalmirrorparameters%
+    % We use a border decoration to make a mirror.
+    % First set the decoration parameters :
+    % - decoration angle
+    \iftikz@optics@sphericalmirror@concave
+      \def\pgfdecorationsegmentangle{45}%
+    \else
+      \def\pgfdecorationsegmentangle{-90-45}%
+    \fi
+    % - decoration step length
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/mirror decoration separation}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentlength}{\pgfkeysvalueof{/tikz/optics/mirror decoration separation}}%
+    \else%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentlength}{\pgfkeysvalueof{/tikz/optics/mirror decoration separation}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+    % magouillons pour que \pgfdecorationsegmentlength soit un multiple de la longueur ...
+    \pgfmathsetmacro\initialstep{\pgfdecorationsegmentlength} 
+    \pgfmathsetmacro\totallength{(2*pi/360)*\angle*\radius} 
+    \pgfmathsetmacro\newstep{\totallength/floor(\totallength/\initialstep)} 
+    \pgfmathsetlengthmacro{\pgfdecorationsegmentlength}{\newstep}
+    % fin magouille
+    % - decoration amplitude
+    % on multiplie par -1 pour que ça aille dans le bon sens sans devoir modifier l'angle (pour éviter des problèmes louches)
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/mirror decoration amplitude}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentamplitude}{-1*\pgfkeysvalueof{/tikz/optics/mirror decoration amplitude}}%
+    \else%
+      \pgfmathsetlengthmacro{\pgfdecorationsegmentamplitude}{-1*\pgfkeysvalueof{/tikz/optics/mirror decoration amplitude}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+    % Now use decoration.
+    % Draw decoration of path : an arc of radius \radius from \arcstart to \arcend
+    \pgfpathmoveto{\arcstart}%
+    \pgfpatharc{\startangle}{\endangle}{\radius}%
+    \pgfdecoratecurrentpath{border} %
+    % Now draw the path.
+    \pgfpathmoveto{\arcstart}%
+    \pgfpatharc{\startangle}{\endangle}{\radius}%
+  }
+  %
+  % Anchor border
+  % This is needed for anchors .<angle> (like mirror.0, mirror.90, etc.) to work.
+  %
+  \anchorborder{%
+    % Save x and y
+    \edef\externalx{\the\pgf@x}%
+    \edef\externaly{\the\pgf@y}%
+    \installsphericalmirrorparameters%
+    % Use circular border
+    \pgfpointborderellipse{ \pgfpoint{\externalx}{\externaly} }{ \pgfpoint{\radius}{\radius} }%
+  }%
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [thick optics element]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% keys :
+% - object aspect ratio (alias : object width)
+% ar = largeur/hauteur => largeur = ar * hauteur
+\pgfkeys{/tikz/optics/.cd,
+  object aspect ratio/.initial=0.2,
+  object width/.style={/tikz/optics/object aspect ratio=#1}
+}
+
+\pgfdeclareshape{thick optics element}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/object height}}%
+  }
+
+  \savedmacro\objectWidth{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/object aspect ratio}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\objectWidth}{\pgfkeysvalueof{/tikz/optics/object aspect ratio}}%
+    \else%
+      \pgfmathsetlengthmacro{\objectWidth}{\pgfkeysvalueof{/tikz/optics/object aspect ratio}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+  }
+
+  \savedanchor{\northeast}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+    \pgf@x=0.5\pgf@x%
+  }
+  \anchor{north east}{\northeast}
+
+  \savedanchor{\southwest}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+    \pgf@x=-0.5\pgf@x%
+  }
+  \anchor{south west}{\southwest}
+
+  \anchor{north}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{south}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{east}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{west}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{north west}{
+    \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{south east}{
+    \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \inheritanchorborder[from=rectangle]
+
+  \backgroundpath
+  {
+    % rectangle
+    \pgfpathrectanglecorners{\northeast}{\southwest}
+  }
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [polarizer]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pgfdeclareshape{polarizer}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/object height}}%
+  }
+
+  \savedmacro\objectWidth{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/object aspect ratio}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\objectWidth}{\pgfkeysvalueof{/tikz/optics/object aspect ratio}}%
+    \else%
+      \pgfmathsetlengthmacro{\objectWidth}{\pgfkeysvalueof{/tikz/optics/object aspect ratio}*\pgfkeysvalueof{/tikz/optics/object height}}%
+    \fi%
+  }
+
+  \savedanchor{\northeast}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+    \pgf@x=0.5\pgf@x%
+  }
+  \anchor{north east}{\northeast}
+
+  \savedanchor{\southwest}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+    \pgf@x=-0.5\pgf@x%
+  }
+  \anchor{south west}{\southwest}
+
+  \anchor{north}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{south}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{east}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{west}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{north west}{
+    \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{south east}{
+    \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \inheritanchorborder[from=rectangle]
+
+  \backgroundpath
+  {
+    % rectangle
+    \pgfpathrectanglecorners{\northeast}{\southwest}
+
+    % diagonale du polariseur
+    \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+    \pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+  }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [double amici prism]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% keys :
+% - prism height
+% - prism apex angle
+\pgfkeys{/tikz/optics/.cd,
+  prism height/.initial=1.5cm,
+  prism apex angle/.initial=60,
+}
+% Idea : we get 
+% apexAngle
+% prismHeight
+% demiPrismWidth = tan(apexAngle/2)*prismHeight
+%
+% so we compute
+%
+% C = (0,0)
+% NE = (demiPrismWidth,0.5*prismHeight)
+% SW = (-2*demiPrismWidth,-0.5*prismHeight)
+% NW = (-demiPrismWidth,0.5*prismHeight)
+% SE = (2*demiPrismWidth,-0.5*prismHeight)
+%
+% N = (0,0.5*prismHeight)
+% S = (0,-0.5*prismHeight)
+% E = (3*0.5*demiPrismWidth,0)
+% W = (-3.0.5*demiPrismWidth,0)
+\pgfdeclareshape{double amici prism}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\prismHeight{%
+    \edef\prismHeight{\pgfkeysvalueof{/tikz/optics/prism height}}%
+  }
+
+  \savedmacro\apexAngle{%
+      \pgfmathsetlengthmacro{\apexAngle}{\pgfkeysvalueof{/tikz/optics/prism apex angle}}
+  }
+
+  \savedmacro\demiPrismWidth{%
+      \pgfmathsetlengthmacro{\demiPrismWidth}{tan(0.5*\pgfkeysvalueof{/tikz/optics/prism apex angle})*\pgfkeysvalueof{/tikz/optics/prism height}}
+  }
+
+  \savedanchor{\northeast}{
+    \pgf@x=\demiPrismWidth%
+    \pgf@y=\prismHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{north east}{\northeast}
+
+  \savedanchor{\southwest}{
+    \pgf@x=\demiPrismWidth%
+    \pgf@y=\prismHeight%
+    \pgf@x=-2\pgf@x%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south west}{\southwest}
+
+  \savedanchor{\northwest}{
+    \pgf@x=\demiPrismWidth%
+    \pgf@y=\prismHeight%
+    \pgf@x=-\pgf@x%
+    \pgf@y=0.5\pgf@y%
+  }
+  \anchor{north west}{\northwest}
+
+  \savedanchor{\southeast}{
+    \pgf@x=\demiPrismWidth%
+    \pgf@y=\prismHeight%
+    \pgf@x=2\pgf@x%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south east}{\southeast}
+
+  \anchor{north}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \savedanchor{\south}{
+    \pgfpointorigin
+    \pgf@y=\prismHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+  \anchor{south}{\south}
+
+  \anchor{east}{
+    \southeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \advance\pgf@x by\pgf@xb
+    \pgf@x=0.5\pgf@x
+    \pgf@y=\pgf@ya
+    \advance\pgf@y by\pgf@yb
+    \pgf@y=0.5\pgf@y
+  }
+
+  \anchor{west}{
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \advance\pgf@x by\pgf@xb
+    \pgf@x=0.5\pgf@x
+    \pgf@y=\pgf@ya
+    \advance\pgf@y by\pgf@yb
+    \pgf@y=0.5\pgf@y
+  }
+
+   \inheritanchorborder[from=rectangle]
+
+  \backgroundpath
+  {
+    \northwest
+    \pgfpathmoveto{\pgfpoint{\pgf@x}{\pgf@y}}
+    \southwest
+    \pgfpathlineto{\pgfpoint{\pgf@x}{\pgf@y}}
+    \southeast
+    \pgfpathlineto{\pgfpoint{\pgf@x}{\pgf@y}}
+    \northeast
+    \pgfpathlineto{\pgfpoint{\pgf@x}{\pgf@y}}
+    \pgfpathclose
+    %
+    % FIXME : ceci devrait s'appliquer seulement au triangle intérieur -> un fgpath ou assimilé
+    \pgfsetbeveljoin
+    \northwest
+    \pgfpathmoveto{\pgfpoint{\pgf@x}{\pgf@y}}
+    \south
+    \pgfpathlineto{\pgfpoint{\pgf@x}{\pgf@y}}
+    \northeast
+    \pgfpathlineto{\pgfpoint{\pgf@x}{\pgf@y}}
+  }
+}
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [generic optics io]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% keys :
+% - io body height : height of the body of the io body
+% - io body aspect ratio (alias io body width) : width/height of the body of the io body
+% - io aperture width : width of the output device (condenser, etc.) [in units of io body height]
+% - io aperture height : height of the output device (condenser, etc.) [in units of io body height]
+% - io aperture shift : vertical shift of the output device [in units of io body height]
+% - io orientation (ltr or rtl)
+\pgfkeys{/tikz/optics/.cd,
+  io body height/.initial=0.75cm,
+  io body aspect ratio/.initial=2,
+  io aperture width/.initial=0.33,
+  io aperture height/.initial=0.66,
+  io aperture shift/.initial=0,
+}
+\pgfkeys{/tikz/optics/io body width/.style={/tikz/optics/io body aspect ratio=#1}}
+%
+\newif\if@tikz@optics@io@ltr
+\@tikz@optics@io@ltrtrue
+%
+\pgfkeys{/tikz/optics/io orientation/.is choice}
+\pgfkeys{/tikz/optics/io orientation/ltr/.code={\@tikz@optics@io@ltrtrue}}
+\pgfkeys{/tikz/optics/io orientation/rtl/.code={\@tikz@optics@io@ltrfalse}}
+%
+\pgfdeclareshape{generic optics io}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/io body height}}%
+  }
+
+  \savedmacro\objectWidth{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/io body aspect ratio}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\objectWidth}{\pgfkeysvalueof{/tikz/optics/io body aspect ratio}}%
+    \else%
+      \pgfmathsetlengthmacro{\objectWidth}{\pgfkeysvalueof{/tikz/optics/io body aspect ratio}*\pgfkeysvalueof{/tikz/optics/io body height}}%
+    \fi%
+  }
+
+  \savedmacro\outHeight{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/io aperture height}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\outHeight}{\pgfkeysvalueof{/tikz/optics/io aperture height}}%
+    \else%
+      \pgfmathsetlengthmacro{\outHeight}{\pgfkeysvalueof{/tikz/optics/io aperture height}*\pgfkeysvalueof{/tikz/optics/io body height}}%
+    \fi%
+  }
+
+  \savedmacro\outWidth{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/io aperture width}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\outWidth}{\pgfkeysvalueof{/tikz/optics/io aperture width}}%
+    \else%
+      \pgfmathsetlengthmacro{\outWidth}{\pgfkeysvalueof{/tikz/optics/io aperture width}*\pgfkeysvalueof{/tikz/optics/io body height}}%
+    \fi%
+  }
+
+  \savedmacro\outShift{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/io aperture shift}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\outShift}{\pgfkeysvalueof{/tikz/optics/io aperture shift}}%
+    \else%
+      \pgfmathsetlengthmacro{\outShift}{\pgfkeysvalueof{/tikz/optics/io aperture shift}*\pgfkeysvalueof{/tikz/optics/io body height}}%
+    \fi%
+  }
+
+  \savedanchor{\bodynortheast}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+    \pgf@x=0.5\pgf@x%
+  }
+  \anchor{body north east}{\bodynortheast}
+
+  \savedanchor{\bodysouthwest}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+    \pgf@x=-0.5\pgf@x%
+  }
+  \anchor{body south west}{\bodysouthwest}
+
+  \savedanchor{\outnortheast}{   
+    \if@tikz@optics@io@ltr
+      % Left To Right (LTR)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      \advance\pgf@x by\outWidth
+    \else
+      % Right To Left (RTL)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      \pgf@x=-\pgf@x%
+    \fi
+    \pgf@y=0pt%
+    \advance\pgf@y by\outHeight
+    \pgf@y=0.5\pgf@y%
+    \advance\pgf@y by\outShift
+  }
+  \anchor{aperture north east}{\outnortheast}
+
+  \savedanchor{\outsouthwest}{
+    \if@tikz@optics@io@ltr
+      % Left To Right (LTR)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+    \else
+      % Right To Left (RTL)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      \advance\pgf@x by\outWidth
+      \pgf@x=-\pgf@x%
+    \fi
+    \pgf@y=0pt%
+    \advance\pgf@y by\outHeight
+    \pgf@y=-0.5\pgf@y%
+    \advance\pgf@y by\outShift
+  }
+  \anchor{aperture south west}{\outsouthwest}
+
+  \savedanchor{\outcenter}{
+    \if@tikz@optics@io@ltr
+      % Left To Right (LTR)
+      \pgf@x=\objectWidth%
+      \advance\pgf@x by\outWidth
+    \else
+      % Right To Left (RTL)
+      \pgf@x=\objectWidth%
+      \advance\pgf@x by\outWidth
+      \pgf@x=-\pgf@x%
+    \fi
+    \pgf@x=0.5\pgf@x%
+    \pgf@y=0pt%
+    \advance\pgf@y by\outShift
+  }
+  \anchor{aperture center}{\outcenter}
+  
+
+  \anchor{body center}{\center}
+
+  \anchor{text}{
+    \pgfpointorigin
+    \advance\pgf@x by -.5\wd\pgfnodeparttextbox%
+    \advance\pgf@y by -.5\ht\pgfnodeparttextbox%
+    \advance\pgf@y by +.5\dp\pgfnodeparttextbox%
+  }
+
+  \anchor{body north}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodynortheast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+  % north = body north
+  \anchor{north}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodynortheast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{body south}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodysouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+  % south = body south
+  \anchor{south}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodysouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{body east}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodynortheast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{body west}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodysouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{body north west}{
+    \bodynortheast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodysouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{body south east}{
+    \bodynortheast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \bodysouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+
+  \anchor{aperture north}{
+    \outcenter \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \outnortheast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{aperture south}{
+    \outcenter \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \outsouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{aperture east}{
+    \outcenter \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \outnortheast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{aperture west}{
+    \outcenter \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \outsouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{aperture north west}{
+    \outnortheast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \outsouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{aperture south east}{
+    \outnortheast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \outsouthwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{center}{\center}
+
+  \savedanchor{\realeast}{
+    \pgfpointorigin
+    \if@tikz@optics@io@ltr
+      % Left To Right (LTR)
+      %ltr : aperture east (<- out north east)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      \advance\pgf@x by\outWidth
+      %\pgf@y=0pt%
+    \else
+      % Right To Left (rtl)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+    \fi
+  }
+  \anchor{east}{\realeast}
+
+  \savedanchor{\realwest}{
+    \pgfpointorigin
+    \if@tikz@optics@io@ltr
+      % Left To Right (LTR)
+      \pgf@x=\objectWidth%
+      \pgf@x=-0.5\pgf@x%
+    \else
+      % Right To Left (rtl)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      \advance\pgf@x by\outWidth
+      \pgf@x=-\pgf@x%
+    \fi
+  }
+  \anchor{west}{\realwest}
+
+  % this is used only for the anchorborder
+  \savedanchor{\anchorbordersouthwest}{
+    \if@tikz@optics@io@ltr
+      % Left To Right (LTR)
+      \pgf@x=\objectWidth%
+      \pgf@x=-0.5\pgf@x%
+    \else
+      % Right To Left (rtl)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      \advance\pgf@x by\outWidth
+      \pgf@x=-\pgf@x%
+    \fi
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+  }
+
+  % this is used only for the anchorborder
+  \savedanchor{\anchorbordernortheast}{
+    \if@tikz@optics@io@ltr
+      % Left To Right (LTR)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      \advance\pgf@x by\outWidth
+    \else
+      % Right To Left (RTL)
+      \pgf@x=\objectWidth%
+      \pgf@x=0.5\pgf@x%
+      %\pgf@x=-\pgf@x%
+    \fi
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+  }
+
+  % anchorborder
+  % c'est celui de rectangle, mais un peu ajusté
+  \anchorborder{%
+    \pgf@xb=\pgf@x% xb/yb is target
+    \pgf@yb=\pgf@y%
+    \anchorbordersouthwest%
+    \pgf@xa=\pgf@x% xa/ya is se
+    \pgf@ya=\pgf@y%
+    \anchorbordernortheast%
+    \advance\pgf@x by-\pgf@xa%
+    \advance\pgf@y by-\pgf@ya%
+    \pgf@xc=.5\pgf@x% x/y is half width/height
+    \pgf@yc=.5\pgf@y%
+    \advance\pgf@xa by\pgf@xc% xa/ya becomes center
+    \advance\pgf@ya by\pgf@yc%
+    \edef\pgf@marshal{%
+      \noexpand\pgfpointborderrectangle
+      {\noexpand\pgfqpoint{\the\pgf@xb}{\the\pgf@yb}}
+      {\noexpand\pgfqpoint{\the\pgf@xc}{\the\pgf@yc}}%
+    }%
+    \pgf@process{\pgf@marshal}%
+    % \advance\pgf@x by\pgf@xa%
+    % \advance\pgf@y by\pgf@ya%
+  }
+
+  \backgroundpath
+  {
+    % corps
+    \pgfpathrectanglecorners{\bodynortheast}{\bodysouthwest}
+    % out
+    \pgfpathrectanglecorners{\outnortheast}{\outsouthwest}
+
+    %\pgfusepath{draw}
+    % il ne faut PAS mettre ça pour pouvoir utiliser des styles correctement après (genre double)
+  }
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sensors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [sensor line]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sensor line.
+%
+% This defines anchors center, north, south, east, west, north east
+% north west, south east, south west, as well as
+% pixel <i> <subanchor> with <subanchor> is any of the former.
+% ça va être horrible à faire
+%
+% keys :
+% - sensor line height
+% - sensor line aspect ratio (largeur en unités de la hauteur du capteur)
+% - sensor line pixel number
+% - sensor line pixel width (en unités de la largeur du capteur)
+% - sensor line inner ysep (en unités de la hauteur du capteur)
+\pgfkeys{/tikz/optics/.cd,
+  sensor line height/.initial=2cm,
+  sensor line aspect ratio/.initial=0.2,
+  sensor line pixel number/.initial=5,
+  sensor line pixel width/.initial=0.4,
+  sensor line inner ysep/.initial=0.05, % entre le bord et les capteurs
+}
+
+\pgfdeclareshape{sensor line}
+{
+  \savedanchor{\center}{
+    \pgfpointorigin
+  }
+  \anchor{center}{\center}
+
+  \savedmacro\objectHeight{%
+    \edef\objectHeight{\pgfkeysvalueof{/tikz/optics/sensor line height}}%
+  }
+
+  \savedmacro\objectWidth{%
+    \pgfmathsetlengthmacro{\objectWidth}{\pgfkeysvalueof{/tikz/optics/sensor line aspect ratio}*\pgfkeysvalueof{/tikz/optics/sensor line height}}
+  }
+
+  \savedmacro\pixelNumber{%
+    \pgfmathtruncatemacro\pixelNumber{\pgfkeysvalueof{/tikz/optics/sensor line pixel number}}%
+  }
+
+  \savedmacro\innerysep{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/sensor line inner ysep}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\innerysep}{\pgfkeysvalueof{/tikz/optics/sensor line inner ysep}}%
+    \else%
+      \pgfmathsetlengthmacro{\innerysep}{\pgfkeysvalueof{/tikz/optics/sensor line inner ysep}*\pgfkeysvalueof{/tikz/optics/sensor line height}}%
+    \fi%
+  }
+  
+  \savedmacro\pixelWidth{%
+    \pgfmathparse{\pgfkeysvalueof{/tikz/optics/sensor line pixel width}}
+    \ifpgfmathunitsdeclared%
+      \pgfmathsetlengthmacro{\pixelWidth}{\pgfkeysvalueof{/tikz/optics/sensor line pixel width}}%
+    \else%
+      \pgfmathsetlengthmacro{\pixelWidth}{\pgfkeysvalueof{/tikz/optics/sensor line pixel width}*\objectWidth}%
+    \fi%
+  }
+
+  \savedmacro\pixelHeight{%
+    \pgfmathparse{(\objectHeight-2*\innerysep)/\pixelNumber}
+    \edef\pixelHeight{\pgfmathresult pt}%
+  }
+
+  \savedanchor{\northeast}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=0.5\pgf@y%
+    \pgf@x=0.5\pgf@x%
+  }
+  \anchor{north east}{\northeast}
+
+  \savedanchor{\southwest}{
+    \pgf@x=\objectWidth%
+    \pgf@y=\objectHeight%
+    \pgf@y=-0.5\pgf@y%
+    \pgf@x=-0.5\pgf@x%
+  }
+  \anchor{south west}{\southwest}
+
+  \anchor{north}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{south}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  \anchor{east}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{west}{
+    \center \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{north west}{
+    \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xb
+    \pgf@y=\pgf@ya
+  }
+
+  \anchor{south east}{
+    \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgf@x=\pgf@xa
+    \pgf@y=\pgf@yb
+  }
+
+  % ok, idée :
+  % HAUT (north) du pixel n (allant de 1 à N)
+  % \objectHeight/2 - \innerysep - (n-1) * \pixelHeight
+  % BAS (south) du pixel n
+  % \objectHeight/2 - \innerysep - n * \pixelHeight
+  % west = le même que la boite, donc utiliser \southwest
+  % east = west + \pixelWidth   
+
+  % Le but de ce code est de définir des ancres
+  % pixel <i> <pos>
+  % pour <i> = 4, 2, ..., \pixelNumber
+  % et <pos> = north, south, east, west, north west, south west, north east south east, center
+  % Comme \pixelNumber est défini dynamiquement, il faut passer par cette horreur.
+  % Le code est inspiré de pfglibraryshapes.geometric.code.tex (shape regular polygon).
+  \expandafter\pgfutil@g@addto@macro\csname pgf@sh@s@sensor line\endcsname{%
+    \c@pgf@counta\pixelNumber\relax%
+    \pgfmathloop%
+      \ifnum\c@pgf@counta>0\relax%
+        \pgfutil@ifundefined{pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space north west}{%
+        %
+        % ...(manually \xdef as \gdef is normally used by \anchor)...
+        %
+        %
+        % pixel surface north
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space north\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pixelWidth
+          \noexpand\pgf@x=.5\noexpand\pgf@x
+          \noexpand\advance\noexpand\pgf@x by\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface north east
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space north east\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pixelWidth
+          \noexpand\advance\noexpand\pgf@x by\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface north west
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space north west\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface south
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space south\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pixelWidth
+          \noexpand\pgf@x=.5\noexpand\pgf@x
+          \noexpand\advance\noexpand\pgf@x by\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber-1)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface south east
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space south east\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pixelWidth
+          \noexpand\advance\noexpand\pgf@x by\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber-1)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface south west
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space south west\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber-1)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface east
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space east\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pixelWidth
+          \noexpand\advance\noexpand\pgf@x by\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber-0.5)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface center
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space center\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pixelWidth
+          \noexpand\pgf@x=.5\noexpand\pgf@x
+          \noexpand\advance\noexpand\pgf@x by\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber-0.5)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+        %
+        %
+        % pixel surface west
+        \expandafter\xdef\csname pgf@anchor@sensor line@pixel\space\the\c@pgf@counta\space west\endcsname{%
+          \noexpand\northeast \noexpand\pgf@xa=\noexpand\pgf@x \noexpand\pgf@ya=\noexpand\pgf@y
+          \noexpand\southwest \noexpand\pgf@xb=\noexpand\pgf@x \noexpand\pgf@yb=\noexpand\pgf@y
+          \noexpand\pgf@x=\noexpand\pgf@xb
+          \noexpand\pgf@y=\noexpand\pgf@ya
+          \noexpand\newdimen\noexpand\temp@y
+          \noexpand\pgfmathsetlength\noexpand\temp@y{(\the\c@pgf@counta-\noexpand\pixelNumber-0.5)*\noexpand\pixelHeight-\noexpand\innerysep}
+          \noexpand\advance\noexpand\pgf@y by\noexpand\temp@y
+        }%
+      }{\c@pgf@counta0\relax}% 
+      \advance\c@pgf@counta-1\relax%
+    \repeatpgfmathloop% 
+  }%
+
+  \inheritanchorborder[from=rectangle]
+
+  \backgroundpath
+  {
+    % rectangle contour
+    \pgfpathrectanglecorners{\northeast}{\southwest}
+
+    % dessin des pixels
+    \c@pgf@counta\pixelNumber\relax%
+    \pgfmathloop%
+      \ifnum\c@pgf@counta>0\relax%
+        \newdimen\pixel@northeast@x
+        \newdimen\pixel@northeast@y
+        \newdimen\pixel@southwest@x
+        \newdimen\pixel@southwest@y
+        \northeast \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+        \southwest \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+        % calcul pixel@northeast
+        %% calcul x
+        \pixel@northeast@x=\pgf@xb
+        \advance\pixel@northeast@x by\pixelWidth
+        %% calcul y
+        \pixel@northeast@y=\pgf@ya
+        \newdimen\temp@y
+        \pgfmathsetlength\temp@y{(\the\c@pgf@counta-\pixelNumber)*\pixelHeight-\innerysep}
+        \advance\pixel@northeast@y by\noexpand\temp@y
+        % calcul pixel@southwest
+        \pixel@southwest@x=\pgf@xb
+        \pixel@southwest@y=\pgf@ya
+        \newdimen\temp@y
+        \pgfmathsetlength\temp@y{(\the\c@pgf@counta-\pixelNumber-1)*\pixelHeight-\innerysep}
+        \advance\pixel@southwest@y by\temp@y
+        % dessin
+        \pgfpathrectanglecorners{\pgfpoint{\pixel@northeast@x}{\pixel@northeast@y}}{\pgfpoint{\pixel@southwest@x}{\pixel@southwest@y}}
+      \advance\c@pgf@counta-1\relax%
+    \repeatpgfmathloop% 
+  }
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Styles defining optics elements in terms of the existing shapes.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Style [screen]
+\pgfkeys{/tikz/optics/screen/.style={thin optics element, very thick}}
+% Style [diffraction grating]
+\pgfkeys{/tikz/optics/diffraction grating/.style={thin optics element, /tikz/optics/cheating dash={on 4pt off 2pt}}}
+% Style [grid]
+\pgfkeys{/tikz/optics/grid/.style={thin optics element, /tikz/optics/cheating dash={on 4pt off 2pt}, ultra thick}}
+% Style [semi-transparent mirror]
+\pgfkeys{/tikz/optics/semi-transparent mirror/.style={thin optics element, densely dotted, thick}}
+% Style [diaphragm]
+\pgfkeys{/tikz/optics/diaphragm/.style={slit,/tikz/optics/slit height=0.4}}
+
+
+% Style [generic lamp]
+\pgfkeys{/tikz/optics/generic lamp/.style={shape=generic optics io,optics,draw}}
+% Style [generic sensor]
+\pgfkeys{/tikz/optics/generic sensor/.style={shape=generic optics io,optics,io orientation=rtl,draw, io body height=1cm, io body aspect ratio=0.5, io aperture width=0.15}}
+% Style [halogen lamp]
+\pgfkeys{/tikz/optics/halogen lamp/.style={/tikz/optics/generic lamp, io body height=0.75cm, io body aspect ratio=2,io aperture width=0.33,io aperture height=0.66,io aperture shift=0}}
+% Style [spectral lamp]
+\pgfkeys{/tikz/optics/spectral lamp/.style={/tikz/optics/generic lamp, io body height=2.25cm, io body aspect ratio=2/3,io aperture width=0.11,io aperture height=0.22,io aperture shift=0.25,/tikz/optics/io multiline}}
+% Style [laser]
+\pgfkeys{/tikz/optics/laser/.style={/tikz/optics/generic lamp, io body height=0.5cm, io body aspect ratio=3,io aperture width=0.22,io aperture height=0.5,io aperture shift=0}}
+% Style [laser']
+\pgfkeys{/tikz/optics/laser'/.style={/tikz/optics/generic lamp, io body height=0.5cm, io body aspect ratio=3,io aperture width=0,io aperture height=0.5,io aperture shift=0}}
+% Style [beam splitter]
+\pgfkeys{/tikz/optics/beam splitter/.style={shape=polarizer, optics, draw, object height=1cm, object aspect ratio=1}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helper style to draw correctly dashed paths.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% source : http://tex.stackexchange.com/questions/133271/can-tikz-dashed-lines-emulate-pstricks-dashed-lines
+% le but est d'avoir des dash symétriques par rapport au milieu et surtout avec un trait entier de chaque côté
+\tikzset{
+    /tikz/optics/cheating dash/.code args={on #1 off #2}{
+        % Use csname so catcode of @ doesn't have do be changed.
+        \csname tikz@addoption\endcsname{%
+            \pgfgetpath\currentpath%
+            \pgfprocessround{\currentpath}{\currentpath}%
+            \csname pgf@decorate@parsesoftpath\endcsname{\currentpath}{\currentpath}%
+            \pgfmathparse{\csname pgf@decorate@totalpathlength\endcsname-#1}\let\rest=\pgfmathresult%
+            \pgfmathparse{#1+#2}\let\onoff=\pgfmathresult%
+            \pgfmathparse{max(floor(\rest/\onoff), 1)}\let\nfullonoff=\pgfmathresult%
+            \pgfmathparse{max((\rest-\onoff*\nfullonoff)/\nfullonoff+#2, #2)}\let\offexpand=\pgfmathresult%
+            \pgfsetdash{{#1}{\offexpand}}{0pt}}%
+    }
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helper style for multiline io elements.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pgfkeys{/tikz/optics/io multiline/.code={\newdimen\tmplen\pgfmathsetlength{\tmplen}{\pgfkeysvalueof{/tikz/optics/io body aspect ratio}*\pgfkeysvalueof{/tikz/optics/io body height}}\tikzset{text width=\the\tmplen,align=center}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helper styles to mark interesing points
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Style [mark point]
+% Describes how interesting points should be drawn (e.g. by [draw focal points], [draw mirror focus], [draw mirror center])
+\pgfkeys{/tikz/optics/mark point/.style={optics/mark a cross}}
+
+% Style [draw focal points]
+% Should be applied to a [shape=lens] node to draw its focal points according to the style [mark point].
+\pgfkeys{/tikz/optics/draw focal points/.style={append after command={
+    \pgfextra{
+      \begin{pgfinterruptpath}
+          \node[/tikz/optics/mark point,#1] at (\tikzlastnode.west focal point) {};
+          \node[/tikz/optics/mark point,#1] at (\tikzlastnode.east focal point) {};
+      \end{pgfinterruptpath}
+    }
+  }
+}}
+
+% Style [draw mirror focus]
+% Should be applied to a [shape=spherical mirror] node to draw its focal point according to the style [mark point].
+\pgfkeys{/tikz/optics/draw mirror focus/.style={append after command={
+    \pgfextra{
+      \begin{pgfinterruptpath}
+          \node[/tikz/optics/mark point,#1] at (\tikzlastnode.focus) {};
+      \end{pgfinterruptpath}
+    }
+  }
+}}
+
+% Style [draw mirror center]
+% Should be applied to a [shape=spherical mirror] node to draw its center according to the style [mark point].
+\pgfkeys{/tikz/optics/draw mirror center/.style={append after command={
+    \pgfextra{
+      \begin{pgfinterruptpath}
+          \node[/tikz/optics/mark point,#1] at (\tikzlastnode.mirror center) {};
+      \end{pgfinterruptpath}
+    }
+  }
+}}
+
+% Style [mark a cross]
+% Draws a cross at the node
+\pgfkeys{/tikz/optics/mark a cross/.style={cross out,draw,inner sep=0pt,minimum width=2pt,minimum height=2pt}}
+
+% idée : utiliser pgfextra pour les flèches, si on peut avoir les deux dernières nodes ?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helper styles to easily put things on paths.
+% It is often needed in optics to have e.g. arrows in the middle of a path.
+% It is often needed everywhere to be able to put a coordinate somewhere on 
+% a path. 
+% This is the aim of these helpers.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Style [put coordinate]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Le style [put coordinate=<coord> at <pos>] crée une node[coordinate]
+% à l'abscisse curviligne <pos> sur le chemin auquel est appliqué le style.
+%
+% Exemple : 
+% \draw[put coordinate=P at 0.3] (0,0) to[bend left] (2cm,0);
+% \draw[red] (P) -- (0,0);
+%
+\tikzset{
+  put coordinate/.style args={#1 at #2}{decoration={markings, mark=at position #2 with {\node[coordinate] (#1) {};}},postaction={decorate}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Style [put arrow]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% The aim of this horrible mess is that I want expansion to take place at the right time, so I can ask for something like
+% \draw[/tikz/optics/->-={at=0.25}, /tikz/optics/->-={at=0.75}] (0,0) -- (2cm,2cm) -- (4cm,0);
+% and have it work. Obviously, I want more complicated things (several arrows with different directions, colors, number of >, etc. on the same path).
+% With a naive implementation, this does not work and the last setting always wins. 
+% A possible solution would be positional arguments, however keywords arguments are Better (tm).
+% Hence the need to take care of expansion order, so the specifications apply only to the currently drawn arrow tip.
+% The main idea behing this code is to use Magic (tm) so that Things Work (tm) and never touch it again. 
+% However, it is obvious from a trivial application of Murphy Law that this will backfire sometime.
+% Indeed, a key with positional arguments are used internally (|ordered draw key|), which is called from the parsed arguments.
+\tikzset{/tikz/put arrow/.cd,
+  pos/.initial=0.5,
+  at/.style={pos=#1},
+  pos var/.initial={},
+  style/.initial={},
+  style var/.initial={},
+  postaction style/.initial={}, % more expansion magic needed for ->n- and friends (\arrow[thing=stuff] does not seem to work, probably because of the =)
+  arrow macro/.initial={arrow},
+  arrow macro var/.initial={},
+  arrow type/.initial={>},
+  arrow type var/.initial={},
+  reversed/.style={arrow macro=arrowreversed},
+  arrow/.style={arrow type=#1},
+  arrow'/.style={arrow type=#1, reversed},
+  every arrow/.style={},
+}
+
+\tikzset{put arrow/.code={
+  % parse arguments correctly
+  \tikzset{/tikz/put arrow/.cd, #1}
+  \tikzset{/tikz/put arrow/pos var/.expand once={\pgfkeysvalueof{/tikz/put arrow/pos}}}
+  \tikzset{/tikz/put arrow/style var/.expanded={\pgfkeysvalueof{/tikz/put arrow/style}}}
+  \tikzset{/tikz/put arrow/arrow macro var/.expand once={\pgfkeysvalueof{/tikz/put arrow/arrow macro}}}
+  \tikzset{/tikz/put arrow/arrow type var/.expand once={\pgfkeysvalueof{/tikz/put arrow/arrow type}}}
+  % call |ordered draw key| which does the real job
+  \tikzset{/tikz/put arrow/ordered draw key/.expanded=%
+      {\pgfkeysvalueof{/tikz/put arrow/pos var}}%
+      {\pgfkeysvalueof{/tikz/put arrow/style var}}%
+      {\pgfkeysvalueof{/tikz/put arrow/arrow macro var}}%
+      {\pgfkeysvalueof{/tikz/put arrow/arrow type var}}%
+      {\pgfkeysvalueof{/tikz/put arrow/postaction style}}%
+  }
+  % restore initial values
+  \tikzset{/tikz/put arrow/pos=0.5} 
+  \tikzset{/tikz/put arrow/style={}}
+  \tikzset{/tikz/put arrow/arrow macro={arrow}}
+  \tikzset{/tikz/put arrow/arrow type={>}}
+}}
+
+\tikzset{/tikz/put arrow/ordered draw key/.code n args={5}{
+  \tikzset{postaction={#5,decorate, decoration={markings, mark=at position #1 with {\csname #3\endcsname[/tikz/put arrow/every arrow,#2]{#4}};}}}
+}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Styles to mark light rays
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tikzset{/tikz/optics/multiple ray arrow/.cd,
+  n/.initial=1,
+  n var/.initial=1,
+  set n/.code={\pgfsetarrowoptions{multiple ray arrow}{#1}},
+}
+
+
+\pgfkeys{
+  /tikz/optics/.cd, 
+  use ray arrow >/.code 2 args={
+    \pgfsetarrowoptions{ray arrow@length}{4pt}
+    \pgfsetarrowoptions{ray arrow@angle}{50}
+    \tikzset{/tikz/put arrow/postaction style/.expanded={/tikz/optics/multiple ray arrow/set n=#1}}
+    \tikzset{/tikz/put arrow/.expanded={arrow={multiple ray arrow}, #2}}
+  },
+  use ray arrow </.code 2 args={
+    \pgfsetarrowoptions{ray arrow@length}{4pt}
+    \pgfsetarrowoptions{ray arrow@angle}{50}
+    \tikzset{/tikz/put arrow/postaction style/.expanded={/tikz/optics/multiple ray arrow/set n=#1}}
+    \tikzset{/tikz/put arrow/.expanded={arrow'={multiple ray arrow}, #2}}
+  },
+  ->n-/.code={
+    \tikzset{/tikz/optics/multiple ray arrow/.cd, .collect unknowns,%
+      #1,
+      unknown options/.get = \arrowkeys}
+    \tikzset{/tikz/optics/multiple ray arrow/n var/.expand once={\pgfkeysvalueof{/tikz/optics/multiple ray arrow/n}}}
+    \tikzset{/tikz/optics/use ray arrow >={\pgfkeysvalueof{/tikz/optics/multiple ray arrow/n var}}{\arrowkeys}}
+  },
+  -<n-/.code={
+    \tikzset{/tikz/optics/multiple ray arrow/.cd, .collect unknowns,%
+      #1,
+      unknown options/.get = \arrowkeys}
+    \tikzset{/tikz/optics/multiple ray arrow/n var/.expand once={\pgfkeysvalueof{/tikz/optics/multiple ray arrow/n}}}
+    \tikzset{/tikz/optics/use ray arrow <={\pgfkeysvalueof{/tikz/optics/multiple ray arrow/n var}}{\arrowkeys}}
+  },
+  %
+  ->-/.style={/tikz/optics/->n-={n=1, #1}},
+  -<-/.style={/tikz/optics/-<n-={n=1, #1}},
+  ->>-/.style={/tikz/optics/->n-={n=2, #1}},
+  -<<-/.style={/tikz/optics/-<n-={n=2, #1}},
+  ->>>-/.style={/tikz/optics/->n-={n=3, #1}},
+  -<<<-/.style={/tikz/optics/-<n-={n=3, #1}},
+  ->>>>-/.style={/tikz/optics/->n-={n=4, #1}},
+  -<<<<-/.style={/tikz/optics/-<n-={n=4, #1}},
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Styles [dim arrow] and [short dim arrow]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\dimarrow@short@position{0}
+\newif\ifdimarrow@nearstart
+\dimarrow@nearstarttrue
+\tikzset{%
+  /tikz/dim arrow/.code={\tikzset{draw,/tikz/dim arrow/draw dim arrow}\pgfkeys{/tikz/dim arrow/.cd,#1}},
+  /tikz/dim arrow'/.code={\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeys{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim arrow/.code={\tikzset{draw,/tikz/dim arrow/draw short dim arrow}\pgfkeys{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim arrow'/.code={\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw short dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeys{/tikz/dim arrow/.cd,#1}},
+  /tikz/dim arrow/.cd,
+  raise/.initial={0.5cm},
+  no raise/.style={raise=0},
+  label/.code={\pgfkeys{/tikz/dim arrow/label text=#1}},
+  label'/.code={\pgfkeys{/tikz/dim arrow/label text=#1,/tikz/dim arrow/label style/.append style={swap},}},
+  label text/.initial={},
+  label style/.style={},
+  label near start/.code={\def\dimarrow@short@position{0}}, % only short
+  label near middle/.code={\def\dimarrow@short@position{2}}, % only short
+  label near end/.code={\def\dimarrow@short@position{1}}, % only short
+  arrow length/.initial={5mm}, % only for short
+  draw short dim arrow/.style={to path={\pgfextra{%
+    \let\tikz@mode@save=\tikz@mode%
+        \let\tikz@options@save=\tikz@options%
+    \newdimen\labelTotalRaise
+    \pgfmathsetlength\labelTotalRaise{\pgfkeysvalueof{/tikz/dim arrow/raise}}
+        \pgfinterruptpath
+        \draw[>=technical,->|] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
+    let
+        \p1=($(\tikztostart)!\pgfkeysvalueof{/tikz/dim arrow/raise}!90:(\tikztotarget)$),
+        \p2=($(\tikztotarget)!\pgfkeysvalueof{/tikz/dim arrow/raise}!-90:(\tikztostart)$)
+        in ($(\p1)!-\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p2)$) -- ($(\p1)!0!(\p2)$);
+    \draw[>=technical,->|] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
+    let
+        \p1=($(\tikztostart)!\pgfkeysvalueof{/tikz/dim arrow/raise}!90:(\tikztotarget)$),
+        \p2=($(\tikztotarget)!\pgfkeysvalueof{/tikz/dim arrow/raise}!-90:(\tikztostart)$)
+        in ($(\p2)!-\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p1)$) -- ($(\p2)!0!(\p1)$);
+    \ifnum\dimarrow@short@position=0
+    \path let 
+        \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
+        \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
+        in let
+    \p3=($(\p1)!-1*\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p2)$),
+    \p4=($(\p1)!-0*\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p2)$)
+    in
+    (\p3) -- (\p4) node[pos=0.5,auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
+  \fi
+    \ifnum\dimarrow@short@position=1
+      \path let 
+        \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
+        \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
+        in let
+    \p3=($(\p2)!-1*\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p1)$),
+    \p4=($(\p2)!-0*\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p1)$)
+    in
+    (\p4) -- (\p3) node[pos=0.5,auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
+    \fi
+  \ifnum\dimarrow@short@position=2
+    \path let 
+        \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
+        \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
+    in
+    (\p1) -- (\p2) node[pos=0.5,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
+  \fi
+        \endpgfinterruptpath
+      }(\tikztostart) (\tikztotarget) \tikztonodes
+    }
+  },
+  draw dim arrow/.style={to path={\pgfextra{%
+    \let\tikz@mode@save=\tikz@mode%
+        \let\tikz@options@save=\tikz@options%
+    \newdimen\labelTotalRaise
+    \pgfmathsetlength\labelTotalRaise{\pgfkeysvalueof{/tikz/dim arrow/raise}}
+        \pgfinterruptpath
+        \draw[>=technical,|<->|] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
+    let 
+        \p1=($(\tikztostart)!\pgfkeysvalueof{/tikz/dim arrow/raise}!90:(\tikztotarget)$),
+        \p2=($(\tikztotarget)!\pgfkeysvalueof{/tikz/dim arrow/raise}!-90:(\tikztostart)$)
+        in (\p1) -- (\p2);
+    \path let 
+        \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
+        \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
+        in (\p1) -- (\p2) node[pos=0.5,auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
+    % rq : inner sep controle la distance chemin-node
+        \endpgfinterruptpath
+      }(\tikztostart) (\tikztotarget) \tikztonodes
+    }
+  },
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Arrows
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Arrow lens arrow
+% used to draw lenses (perhaps not the best idea).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pgfsetarrowoptions{lens arrow@length}{6pt}
+\pgfsetarrowoptions{lens arrow@angle}{50}
+\pgfarrowsdeclare{lens arrow}{lens arrow}
+{
+   \pgfarrowsleftextend{0pt}
+   \pgfarrowsrightextend{0pt}
+}
+{
+  \pgfsetroundcap
+  \pgfsetmiterjoin
+  \pgfmathsetlength{\pgfutil@tempdimb}{\pgfgetarrowoptions{lens arrow@length}*sin(\pgfgetarrowoptions{lens arrow@angle}/2)}    
+  \def\arrow@origin{\pgfpoint{0pt}{0pt}}
+  \pgfutil@tempdima=\pgfgetarrowoptions{lens arrow@length}%
+  \pgfmathsetmacro{\tmp@lens@angle}{90+\pgfgetarrowoptions{lens arrow@angle}}
+  \pgfmathsetmacro{\tmp@lens@anglediv}{\pgfgetarrowoptions{lens arrow@angle}/2}
+  \advance\pgfutil@tempdima by -1.5\pgflinewidth%
+  \pgfmathsetlength{\pgfutil@tempdima}{\pgfutil@tempdima/cos(\pgfgetarrowoptions{lens arrow@angle}/2)}    
+  \pgfpathmoveto{\pgfpointadd{\arrow@origin}{\pgfqpointpolar{\tmp@lens@angle}{\pgfutil@tempdima}}}
+  \pgfpathlineto{\arrow@origin}
+  \pgfpathlineto{\pgfpointadd{\arrow@origin}{\pgfqpointpolar{-\tmp@lens@angle}{\pgfutil@tempdima}}}
+  \pgfusepathqstroke
+}
+\pgfarrowsdeclarereversed{lens arrow reversed}{lens arrow reversed}{lens arrow}{lens arrow}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Ray arrow
+% It is useful to have an arrow which goes on the exact middle of a path.
+% This is used on ->-, etc.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% flèche utilisée pour marquer les rayons lumineux (avec les styles ->-, etc.)
+\pgfsetarrowoptions{ray arrow@length}{4pt}
+\pgfsetarrowoptions{ray arrow@angle}{45}
+
+\makeatletter
+
+\pgfsetarrowoptions{multiple ray arrow}{0}
+\pgfarrowsdeclare{multiple ray arrow}{multiple ray arrow}
+{
+    \pgfarrowsleftextend{0pt}
+    \pgfarrowsrightextend{0pt}
+}
+{
+  \pgfsetroundcap
+  \pgfsetmiterjoin
+  \pgfutil@tempdima=\pgfgetarrowoptions{ray arrow@length}%
+  \pgfmathsetmacro{\tmp@ray@angle}{90+\pgfgetarrowoptions{ray arrow@angle}}
+  \pgfmathsetmacro{\tmp@ray@anglediv}{\pgfgetarrowoptions{ray arrow@angle}/2}
+  \advance\pgfutil@tempdima by -1.5\pgflinewidth%
+  \pgfmathsetlength{\pgfutil@tempdima}{\pgfutil@tempdima/cos(\pgfgetarrowoptions{ray arrow@angle}/2)}
+  %
+  \foreach \i in {1,...,\pgfgetarrowoptions{multiple ray arrow}}
+  {
+    \pgfmathsetlength{\pgfutil@tempdimb}{(2*\i-\pgfgetarrowoptions{multiple ray arrow})*\pgfgetarrowoptions{ray arrow@length}*sin(\pgfgetarrowoptions{ray arrow@angle}/2)}
+    %
+    \def\arrow@origin{\pgfpoint{\pgfutil@tempdimb}{0pt}}
+    %
+    \pgfpathmoveto{\pgfpointadd{\arrow@origin}{\pgfqpointpolar{\tmp@ray@angle}{\pgfutil@tempdima}}}
+    \pgfpathlineto{\arrow@origin}
+    \pgfpathlineto{\pgfpointadd{\arrow@origin}{\pgfqpointpolar{-\tmp@ray@angle}{\pgfutil@tempdima}}}
+    \pgfusepathqstroke
+  }
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Arrow technical
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeatletter
+\pgfarrowsdeclare{technical}{technical}
+{%
+  \pgfutil@tempdima=0.48pt%
+  \pgfutil@tempdimb=\pgflinewidth%
+  \ifdim\pgfinnerlinewidth>0pt%
+    \pgfmathsetlength\pgfutil@tempdimb{.6\pgflinewidth-.4*\pgfinnerlinewidth}%
+  \fi%
+  \advance\pgfutil@tempdima by.3\pgfutil@tempdimb%
+  \pgfarrowsleftextend{+-3\pgfutil@tempdima}%
+  \pgfarrowsrightextend{+8\pgfutil@tempdima}%
+}
+{%
+  \pgfutil@tempdima=0.48pt%
+  \pgfutil@tempdimb=\pgflinewidth%
+  \ifdim\pgfinnerlinewidth>0pt%
+    \pgfmathsetlength\pgfutil@tempdimb{.6\pgflinewidth-.4*\pgfinnerlinewidth}%
+  \fi%
+  \advance\pgfutil@tempdima by.3\pgfutil@tempdimb%
+  \pgfpathmoveto{\pgfqpoint{8\pgfutil@tempdima}{0pt}}%
+  \pgfpathlineto{\pgfqpoint{-3\pgfutil@tempdima}{3\pgfutil@tempdima}}%
+  \pgfpathlineto{\pgfpointorigin}%
+  \pgfpathlineto{\pgfqpoint{-3\pgfutil@tempdima}{-3\pgfutil@tempdima}}%
+  \pgfusepathqfill%
+}
+
+\pgfarrowsdeclare{technical reversed}{technical reversed}
+{%
+  \pgfutil@tempdima=0.48pt%
+  \pgfutil@tempdimb=\pgflinewidth%
+  \ifdim\pgfinnerlinewidth>0pt%
+    \pgfmathsetlength\pgfutil@tempdimb{.6\pgflinewidth-.4*\pgfinnerlinewidth}%
+  \fi%
+  \advance\pgfutil@tempdima by.3\pgfutil@tempdimb%
+  \pgfarrowsleftextend{-8\pgfutil@tempdima}
+  \pgfarrowsrightextend{-8\pgfutil@tempdima}
+}
+{%
+  \pgfutil@tempdima=0.48pt%
+  \pgfutil@tempdimb=\pgflinewidth%
+  \ifdim\pgfinnerlinewidth>0pt%
+    \pgfmathsetlength\pgfutil@tempdimb{.6\pgflinewidth-.4*\pgfinnerlinewidth}%
+  \fi%
+  \advance\pgfutil@tempdima by.3\pgfutil@tempdimb%
+  \pgfpathmoveto{\pgfqpoint{-8\pgfutil@tempdima}{0pt}}%
+  \pgfpathlineto{\pgfqpoint{3\pgfutil@tempdima}{3\pgfutil@tempdima}}%
+  \pgfpathlineto{\pgfpointorigin}%
+  \pgfpathlineto{\pgfqpoint{3\pgfutil@tempdima}{-3\pgfutil@tempdima}}%
+  \pgfusepathqfill%
+}
+
+
+
+
+% \tikzset{%
+%   apply style/.code={%
+%     \tikzset{#1}%
+%   }
+% }
+
+% Changelog:
+% 2013-10-21 : ajout du style |distance arrow| et de la décoration |line| correspondante.
+% 2013-11-19 : suppression de |distance arrow| et ajout à la place de |dim arrow| et assimilés
+% 2013-11-22 : choix entre distances relatives et absolues (http://www.texample.net/tikz/examples/supersonic-nozzle/)
+% 2013-11-24 : styles de flèches |->-|, |-<-|, |->>-|, |-<<-| (et flèches pgf |ray arrow|, etc. correspondantes)
+% 2013-11-24 : flèches pgf |lens arrow| et |lens arrow reversed|
+% 2013-11-24 : |generic optics element| -> |thin optics element| et |thick optics element| ; conséquences. |beam splitter|
+% 2014-01-01 : ajout de |double amici prism|,  |optics| -> |use optics| et |one arrow| -> |put arrow| ; |mark a *| supprimés
+% 2014-03-19 : anchorborder pour |generic optics io| (les labels devraient donc être placés correctement)
+%              |io body aspect ratio| accepte désormais aussi des longueurs absolues, ajout d'un alias |io body width| pour |io body aspect ratio|
+% 2014-06-26 : modification du code des flèches |->-|, |->>-|, etc. et ajout de |->>>-|, |->>>>-|,|->n-=<nombre>| (idem dans l'autre sens)
+% 2014-07-08 : ajout de |arrow style| à |put arrow|
+% 2014-09-20 : ajout de |spherical mirror| et quelques modifications à |mirror| (ajustement de la décoration et de ses réglages par défaut)
+% 2014-09-22 : ajustements de |spherical mirror| (concave et convexe), et ajout des styles correspondants |convex mirror| et |concave mirror|
+% 2014-09-24 : ajustements de |spherical mirror| (ltr/rtl) ; correction des ancres de generic optics io (aperture north, aperture center, aperture south étaient incorrectes)
+% 2014-09-25 : corrections à |spherical mirror| (ltr/rtl vs concave/convex) ; 
+% 2014-10-02 : ajout d'une fonction |from_radius| pour définir l'angle d'ouverture de |spherical mirror|, encore des corrections à |spherical mirror| (ltr/rtl vs concave/convex) ; 
+%               macro pour les messages d'erreur
+% 2014-10-03 : vérifications de cohérence des grandeurs pour |slit| et |double slit| ; messages d'erreur au besoin
+% 2014-12-07 : modifications substantielles à |put arrow| et |optics/->n-|, etc. pour pouvoir avoir plusieurs flèches sur le même chemin ; la compatibilité arrière est brisée.
+% 2014-12-11 : nettoyage
+% 2015-03-10 : ajout d'un alias |object width| pour |object aspect ratio|, qui accepte désormais aussi des longueurs absolues
+% 2015-06-13 : mise en cohérence des noms des points focaux pour le miroir et la lentille (désormais, "focus" et "focal point")
+\makeatother

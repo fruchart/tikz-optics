@@ -1,0 +1,17 @@
+*.aux
+*.log
+*.lof
+*.lot
+*.fls
+*.out
+*.toc
+
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.brf
+*.run.xml
+
+*.atfi

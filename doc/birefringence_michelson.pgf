@@ -1,0 +1,63 @@
+  \begin{tikzpicture}[use optics]
+
+  \node[semi-transparent mirror,rotate=-45,label={above:$(S)$}] (CS) at (0,0) {};
+  % quand on tourne les node, il faut parfois préciser les ancres à utiliser pour que le résultat soit celui attendu
+  \node[mirror,rotate=90, above=3cm of CS.center,anchor=center,label={below:$(M_1)$}] (M1) {};
+  \node[mirror,rotate=-20, right=3cm of CS.center,anchor=center,label={[xshift=-0.5cm]above:$(M_2)$}] (M2) {};
+
+  \node[draw,fit=(CS) (M1) (M2),inner sep=0.5cm] (support Michelson) {};
+
+  \node[semi-transparent mirror,rotate=45,left=3cm of CS] (CSa) {};
+
+  \node[laser,rotate=-90,above=3cm of CSa.center,anchor=center] (laser) {laser};
+
+  \node[polarizer,left=1.5cm of CSa,label=above:$P_1$] (P1) {};
+  \node[thick optics element,left=0.5cm of P1,label=below:quartz,object aspect ratio=0.2] (quartz) {};
+  \node[polarizer,left=0.5cm of quartz,label=above:$P_2$] (P2) {};
+  \node[lens,left=1.5cm of P2,lens height=0.6] (condenseur) {};
+  \node[heat filter,left=1cm of condenseur,label=below:AC] (AC) {};
+  \node[halogen lamp,left=0.5cm of AC,anchor=aperture east] (QI) {QI};
+
+
+  \node[semi-transparent mirror,rotate=45,below=2cm of CS] (CSb) {};
+  \node[lens,rotate=90,below=1.5cm of CSb.center,anchor=center,lens height=0.6] (Lp) {};
+  \node[screen,rotate=90,below=2cm of Lp.center,anchor=center] (S) {};
+  \node[screen,right=3cm of CSb.center,anchor=center] (S') {};
+
+
+  \begin{scope}[ocg={name=Rayons lumineux,ref=raylum,status=invisible}]
+  \draw[red] (laser.aperture east) -- (CSa.center) -- (CS.center)
+  (CS.center) -- (M1.center)
+  (CS.center) -- (M2.center)
+  (CS.center) -- (CSb.center) -- (S'.center);
+
+  % la syntaxe n'est pas très dense quand on a besoin d'utiliser des intersections
+  % attention, il faut permutter nord et sud si on tourne le mirroir dans l'autre sens
+  \path[name path=cM2n]  (condenseur.lens north) -| (M2.north);
+  \path[name path=cM2s]  (condenseur.lens south) -| (M2.north);
+  \path[name path=M2ns] (M2.north) -- (M2.south);
+  \path[name path=CSns] (CS.north) -- (CS.south);
+  \path[name intersections={of=cM2n and M2ns,by=M2 north int}];
+  \path[name intersections={of=cM2s and M2ns,by=M2 south int}];
+  \path[name intersections={of=cM2n and CSns,by=CS north int}];
+  \path[name intersections={of=cM2s and CSns,by=CS south int}];
+
+  \draw[blue]
+    (QI.aperture east) -- (condenseur.lens north) -- (M2 north int)
+    (M2 south int) -- (condenseur.lens south) -- cycle
+    %
+    (QI.aperture east) -- (condenseur.lens north) -- 
+    (CS north int) |- (M1.center)
+    %
+    (M1.center) -| (CS south int)
+    -- (condenseur.lens south) -- (QI.aperture east)
+    %
+    (CS north int) -- (Lp.lens south) -- (S.center)
+    (CS south int) -- (Lp.lens north) -- (S.center);
+  \end{scope}
+
+
+  \node[draw,circle,line width=1pt,fill=lime!50,switch ocg with mark on={raylum}{}] (rays button) at (-9cm,-5cm) {};
+  \node[right=0pt of rays button]{afficher les rayons};
+
+  \end{tikzpicture}
