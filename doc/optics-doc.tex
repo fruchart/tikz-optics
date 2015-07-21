@@ -238,15 +238,15 @@ Cette bibliothèque peut être distribuée et modifiée sous les conditions de l
 
 Cette bibliothèque est une \enquote{bibliothèque tikz}. Il y a deux façons de l'utiliser : 
 \begin{itemize}
-  \item en ajoutant le fichier |tikzlibraryoptics.code.tex| dans un dossier où \TeX{} peut le trouver, par exemple dans votre dossier |TEXMF|\footnote{Pour savoir où il se trouve, on peut utiliser la commande \verb|kpsewhich -var-value TEXMFHOME|. } ;
-  \item en incluant le fichier |tikzlibraryoptics.code.tex| contenant la bibliothèque grâce à la commande |\input|.
+  \item en ajoutant le fichier |tikzlibraryoptics.code.tex| dans un dossier où \TeX{} peut le trouver, par exemple dans votre dossier |TEXMF|\footnote{Pour savoir où il se trouve, on peut utiliser la commande \verb|kpsewhich -var-value TEXMFHOME|. }, puis en utilisant la commande |\usetikzlibrary{optics}| ;
+  \item en incluant directement le fichier |tikzlibraryoptics.code.tex| contenant la bibliothèque grâce à la commande |\input|.
 \end{itemize}
 
 
 \subsection{Utilisation de la bibliothèque}
 
 \begin{key}{/tikz/use optics}
-Après avoir installé la bibliothèque, il suffit d'utiliser l'option |use optics| sur une |tikzpicture| pour pouvoir utiliser les commandes\footnote{L'option \texttt{use optics} charge les éléments pertinents de \texttt{/tikz/optics/} dans \texttt{/tikz/}, ce qui permet de les utiliser directement. Séparer a priori les commandes dans des espaces de noms différents permet de réduire le risque de collision de noms.}
+Après avoir installé la bibliothèque, il suffit de la charger grace à la commande |\usetikzlibrary{optics}|, puis d'utiliser l'option |use optics| sur une |tikzpicture| pour pouvoir utiliser les commandes\footnote{L'option \texttt{use optics} charge les éléments pertinents de \texttt{/tikz/optics/} dans \texttt{/tikz/}, ce qui permet de les utiliser directement. Séparer a priori les commandes dans des espaces de noms différents permet de réduire le risque de collision de noms.}
 
 \begin{codeexample}[width=5cm]
 \begin{tikzpicture}[use optics]
