@@ -27,4 +27,4 @@ It is easy to draw slightly more complicated setups, e.g.
 
 ![QI, AC, hole, lens, screen](http://fruchart.github.io/tikz-optics/media/example-QI-hole-lens-screen.png)
 
-For more details, please see the [documentation](https://github.com/fruchart/tikz-optics/raw/master/doc/optics-doc.pdf).
+For more details, please see the [documentation](https://github.com/fruchart/tikz-optics/raw/master/doc/tikz-optics.pdf).

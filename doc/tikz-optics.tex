@@ -1,13 +1,19 @@
 \iffalse
 The tikzoptics library documentation
 
-Copyright (C) 2013-2015 by
+Copyright (C) 2013-2016 by
   Michel Fruchart <michel.fruchart@ens-lyon.org>
 
-This work may be distributed under the conditions of the 
-Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0) License,
-which can be found at the address:
-https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
+This work may be distributed and/or modified under the conditions of
+the LaTeX Project Public License (LPPL), version 1.3c, which can be
+found at the address:
+https://www.latex-project.org/lppl/lppl-1-3c/
+
+Alternatively, it may be distributed and/or modified under the conditions of
+the GNU Free Documentation License (GNU FDL), version 1.3, which can be found
+at the address:
+https://www.gnu.org/licenses/fdl-1.3.en.html
+or any later version published by the Free Software Foundation.
 \fi
 % allow compression of cross references.
 \pdfminorversion=5 
@@ -2056,7 +2062,7 @@ Pour contrôler ces paramètres, il faut utiliser les sous-clés suivantes :
 \end{tikzpicture}  
 \end{codeexample}
 
-\begin{key}{/tikz/put/arrow/style=\meta{style}}
+\begin{key}{/tikz/put arrow/style=\meta{style}}
   Le |\meta{style}| est passé à |\arrow[|\meta{style}|]| pour dessiner les flèches.
 \end{key}
 
@@ -2069,7 +2075,7 @@ Pour contrôler ces paramètres, il faut utiliser les sous-clés suivantes :
 \end{tikzpicture}
 \end{codeexample}
 
-\begin{stylekey}{/tikz/put/arrow/every arrow}
+\begin{stylekey}{/tikz/put arrow/every arrow}
   Il s'agit d'un style passé à toutes les flèches dessinées par |put arrow| (dans la portée du style). Il faut utiliser |every arrow/.style={|\meta{style}|}| (ou |append style|, etc.).
 \end{stylekey}
 

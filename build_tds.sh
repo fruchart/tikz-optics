@@ -1,6 +1,10 @@
 #!/bin/bash    
-# Script to create a TDS-structured package for tikz-optics.
+# Script to create a TDS-structured package for the tikzoptics library.
 # See https://www.ctan.org/TDS-guidelines for the TDS structure.
+#
+# This script is part of the tikzoptics library and is subject to
+# the same licenses: it can be distributed and/or modified under the 
+# LLPL 1.3c or the GNU GPL 2 (or later).
 
 # create a temporary directory (to put the contents of the zip file to be)
 # and register a cleanup function to remove it at EXIT
