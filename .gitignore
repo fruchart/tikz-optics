@@ -15,3 +15,7 @@
 *.run.xml
 
 *.atfi
+
+# do not track the packages
+tikz-optics.tds.zip
+tikz-optics.zip
