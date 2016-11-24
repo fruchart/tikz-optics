@@ -1,8 +1,8 @@
 #!/bin/bash    
-# Script to create a TDS-structured package for the tikzoptics library.
+# Script to create a TDS-structured package for the tikz-optics library.
 # See https://www.ctan.org/TDS-guidelines for the TDS structure.
 #
-# This script is part of the tikzoptics library and is subject to
+# This script is part of the tikz-optics library and is subject to
 # the same licenses: it can be distributed and/or modified under the 
 # LLPL 1.3c or the GNU GPL 2 (or later).
 
