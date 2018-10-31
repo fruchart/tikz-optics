@@ -67,6 +67,7 @@ or any later version published by the Free Software Foundation.
     /tikz/.cd,
       % shapes 
       % FIXME il ne devrait pas y avoir de logique (ni de valeurs par défaut) ici, seulement l'export dans l'espace de nom commun
+      eye/.prefix style={shape=eye,optics,draw},
       lens/.prefix style={shape=lens,optics,draw},
       slit/.prefix style={shape=slit,optics,draw},
       double slit/.prefix style={shape=double slit,optics,draw},
@@ -1688,6 +1689,66 @@ or any later version published by the Free Software Foundation.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shape [eye]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pgfdeclareshape{eye}
+{
+	\anchor{center}{\pgfpoint{-.954cm}{0cm}}
+	\anchor{north}{\pgfpoint{-.377cm}{.3925cm}}
+	\anchor{south}{\pgfpoint{-.377cm}{-.3925cm}}
+	\anchor{east}{\pgfpointorigin}
+	\anchor{west}{\pgfpoint{-.754cm}{0cm}}
+	\anchor{north east}{\pgfpoint{0cm}{.3925cm}}
+	\anchor{north west}{\pgfpoint{-.754cm}{.3925cm}}
+	\anchor{south east}{\pgfpoint{0cm}{-.3925cm}}
+	\anchor{south west}{\pgfpoint{-.754cm}{-.3925cm}}
+	\anchor{origin}{\pgfpoint{-.377cm}{0cm}}
+	\savedanchor{\text}{
+		\pgfpoint{-.377cm}{-.6cm}
+		\advance\pgf@x by -.5\wd\pgfnodeparttextbox%
+		\advance\pgf@y by -\ht\pgfnodeparttextbox%
+	}
+	\anchor{text}{\text}
+	\savedanchor{\belowrighttext}{
+		\pgfpoint{-.377cm}{-.6cm}
+		\advance\pgf@x by .5\wd\pgfnodeparttextbox%
+		\advance\pgf@y by -\ht\pgfnodeparttextbox%
+		\advance\pgf@y by -\dp\pgfnodeparttextbox%
+	}
+	\anchor{belowrighttext}{\belowrighttext}
+
+	\backgroundpath
+	{
+	% Take into account the node text for the bounding box computation.
+	\ifdim\ht\pgfnodeparttextbox>0cm
+		\pgfpathmoveto{\belowrighttext}
+	\fi
+	% Iris
+	\pgfpathmoveto{\pgfpointpolar{161.667}{.75cm}}
+	\pgfpatharc{161.667}{198.333}{.75cm}
+	\pgfpatharc{-55}{55}{.28cm}
+	\pgfsetfillcolor{gray}
+	\pgfusepath{fill}
+	% Pupil
+	\pgfpathmoveto{\pgfpointpolar{169}{.75cm}}
+	\pgfpatharc{169}{191}{.75cm}
+	\pgfpatharc{-55}{55}{.168cm}
+	\pgfsetfillcolor{black}
+	\pgfusepath{fill}
+	% Everything else
+	\pgfpathmoveto{\pgfpointorigin}
+	\pgfpathcurveto{\pgfpointpolar{165}{.5cm}}{\pgfpointpolar{152.5}{.85cm}}{\pgfpointpolar{152.5}{.85cm}}
+	\pgfpathmoveto{\pgfpointorigin}
+	\pgfpathcurveto{\pgfpointpolar{195}{.5cm}}{\pgfpointpolar{-152.5}{.85cm}}{\pgfpointpolar{-152.5}{.85cm}}
+	\pgfpathmoveto{\pgfpointpolar{154.15}{.75cm}}
+	\pgfpatharc{154.15}{205.85}{.75cm}
+    \pgfsetarrowsstart{}
+    \pgfsetarrowsend{}
+	}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sensors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2249,17 +2310,26 @@ or any later version published by the Free Software Foundation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Styles [dim arrow] and [short dim arrow]
+% Styles [dim arrow], [dim left arrow], [dim right arrow], [short dim arrow], [short dim left arrow], [short dim right arrow]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\def\dimarrow@short@position{0}
-\newif\ifdimarrow@nearstart
-\dimarrow@nearstarttrue
+%\def\dimarrow@kind: 0=dim left arrow, 1=dim arrow, 2=dim right arrow.
 \tikzset{%
-  /tikz/dim arrow/.code={\tikzset{draw,/tikz/dim arrow/draw dim arrow}\pgfkeys{/tikz/dim arrow/.cd,#1}},
-  /tikz/dim arrow'/.code={\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeys{/tikz/dim arrow/.cd,#1}},
-  /tikz/short dim arrow/.code={\tikzset{draw,/tikz/dim arrow/draw short dim arrow}\pgfkeys{/tikz/dim arrow/.cd,#1}},
-  /tikz/short dim arrow'/.code={\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw short dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeys{/tikz/dim arrow/.cd,#1}},
+  /tikz/dim arrow/.code={\def\dimarrow@position{1}\def\dimarrow@kind{1}\tikzset{draw,/tikz/dim arrow/draw dim arrow}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/dim arrow'/.code={\def\dimarrow@position{1}\def\dimarrow@kind{1}\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim arrow/.code={\def\dimarrow@position{0}\def\dimarrow@kind{1}\tikzset{draw,/tikz/dim arrow/draw short dim arrow}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim arrow'/.code={\def\dimarrow@position{0}\def\dimarrow@kind{1}\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw short dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},%
+%
+  /tikz/dim left arrow/.code={\def\dimarrow@position{1}\def\dimarrow@kind{0}\tikzset{draw,/tikz/dim arrow/draw dim arrow}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/dim left arrow'/.code={\def\dimarrow@position{1}\def\dimarrow@kind{0}\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim left arrow/.code={\def\dimarrow@position{0}\def\dimarrow@kind{0}\tikzset{draw,/tikz/dim arrow/draw short dim arrow}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim left arrow'/.code={\def\dimarrow@position{0}\def\dimarrow@kind{0}\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw short dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},%
+%
+  /tikz/dim right arrow/.code={\def\dimarrow@position{1}\def\dimarrow@kind{2}\tikzset{draw,/tikz/dim arrow/draw dim arrow}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/dim right arrow'/.code={\def\dimarrow@position{1}\def\dimarrow@kind{2}\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim right arrow/.code={\def\dimarrow@position{2}\def\dimarrow@kind{2}\tikzset{draw,/tikz/dim arrow/draw short dim arrow}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},
+  /tikz/short dim right arrow'/.code={\def\dimarrow@position{2}\def\dimarrow@kind{2}\pgfkeysgetvalue{/tikz/dim arrow/raise}{\tmp@tdar}\tikzset{draw,/tikz/dim arrow/draw short dim arrow,/tikz/dim arrow/raise=-\tmp@tdar}\pgfkeysalso{/tikz/dim arrow/.cd,#1}},%
+%
   /tikz/dim arrow/.cd,
   raise/.initial={0.5cm},
   no raise/.style={raise=0},
@@ -2267,9 +2337,9 @@ or any later version published by the Free Software Foundation.
   label'/.code={\pgfkeys{/tikz/dim arrow/label text=#1,/tikz/dim arrow/label style/.append style={swap},}},
   label text/.initial={},
   label style/.style={},
-  label near start/.code={\def\dimarrow@short@position{0}}, % only short
-  label near middle/.code={\def\dimarrow@short@position{2}}, % only short
-  label near end/.code={\def\dimarrow@short@position{1}}, % only short
+  label near start/.code={\def\dimarrow@position{0}},
+  label near middle/.code={\def\dimarrow@position{1}},
+  label near end/.code={\def\dimarrow@position{2}},
   arrow length/.initial={5mm}, % only for short
   draw short dim arrow/.style={to path={\pgfextra{%
     \let\tikz@mode@save=\tikz@mode%
@@ -2277,17 +2347,19 @@ or any later version published by the Free Software Foundation.
     \newdimen\labelTotalRaise
     \pgfmathsetlength\labelTotalRaise{\pgfkeysvalueof{/tikz/dim arrow/raise}}
         \pgfinterruptpath
-        \draw[>=technical,->|] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
+        \draw \ifnum\dimarrow@kind=2 [-|] \else [>=technical,->|] \fi
+        \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
     let
         \p1=($(\tikztostart)!\pgfkeysvalueof{/tikz/dim arrow/raise}!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\pgfkeysvalueof{/tikz/dim arrow/raise}!-90:(\tikztostart)$)
         in ($(\p1)!-\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p2)$) -- ($(\p1)!0!(\p2)$);
-    \draw[>=technical,->|] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
+    \draw \ifnum\dimarrow@kind=0 [-|] \else [>=technical,->|] \fi
+    \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
     let
         \p1=($(\tikztostart)!\pgfkeysvalueof{/tikz/dim arrow/raise}!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\pgfkeysvalueof{/tikz/dim arrow/raise}!-90:(\tikztostart)$)
         in ($(\p2)!-\pgfkeysvalueof{/tikz/dim arrow/arrow length}!(\p1)$) -- ($(\p2)!0!(\p1)$);
-    \ifnum\dimarrow@short@position=0
+    \ifnum\dimarrow@position=0
     \path let 
         \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
@@ -2297,7 +2369,7 @@ or any later version published by the Free Software Foundation.
     in
     (\p3) -- (\p4) node[pos=0.5,auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
   \fi
-    \ifnum\dimarrow@short@position=1
+    \ifnum\dimarrow@position=2
       \path let 
         \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
@@ -2307,7 +2379,7 @@ or any later version published by the Free Software Foundation.
     in
     (\p4) -- (\p3) node[pos=0.5,auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
     \fi
-  \ifnum\dimarrow@short@position=2
+  \ifnum\dimarrow@position=1
     \path let 
         \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
@@ -2324,7 +2396,8 @@ or any later version published by the Free Software Foundation.
     \newdimen\labelTotalRaise
     \pgfmathsetlength\labelTotalRaise{\pgfkeysvalueof{/tikz/dim arrow/raise}}
         \pgfinterruptpath
-        \draw[>=technical,|<->|] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
+        \draw \ifnum\dimarrow@kind=0 [>=technical,|<-|] \else \ifnum\dimarrow@kind=2 [>=technical,|->|] \else [>=technical,|<->|] \fi \fi
+        \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
     let 
         \p1=($(\tikztostart)!\pgfkeysvalueof{/tikz/dim arrow/raise}!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\pgfkeysvalueof{/tikz/dim arrow/raise}!-90:(\tikztostart)$)
@@ -2332,7 +2405,7 @@ or any later version published by the Free Software Foundation.
     \path let 
         \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
-        in (\p1) -- (\p2) node[pos=0.5,auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
+    in (\p1) -- (\p2) node[pos=\dimarrow@position/2, auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
     % rq : inner sep controle la distance chemin-node
         \endpgfinterruptpath
       }(\tikztostart) (\tikztotarget) \tikztonodes
