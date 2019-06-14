@@ -49,6 +49,8 @@ or any later version published by the Free Software Foundation.
 \usetikzlibrary{fit}
 \usetikzlibrary{ocgx}
 
+\AtBeginEnvironment{tikzpicture}{\shorthandoff{:;!}}
+\AtBeginEnvironment{pgfpicture}{\shorthandoff{:;!}}
 
 \usepackage{fancyvrb}
 
@@ -76,13 +78,7 @@ or any later version published by the Free Software Foundation.
 
 
 \usepackage[protrusion=true,expansion,kerning=true,final,verbose=false,babel=false]{microtype}
-\DisableLigatures{encoding=T1,family=tt*}
-
-
-% corrige l'interaction foireuse entre tikz et babel[french]
-\AtBeginEnvironment{tikzpicture}{\shorthandoff{:;!}}
-\AtBeginEnvironment{pgfpicture}{\shorthandoff{:;!}}
-
+%\DisableLigatures{encoding=T1,family=tt*}
 
 % This is not the standard way to load a tikzlibrary
 % but I want to make sure that the documentation loads
@@ -166,7 +162,8 @@ or any later version published by the Free Software Foundation.
 % Specific environnements
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Environnement |example only| : aspect similaire à codeexample, mais avec seulement l'exemple (quand le code est trop long)
+% Environnement |example only| : similar appearance to codeexample, but with only the example (when the code is too long)
+
 \newmdenv[
   backgroundcolor=graphicbackground,
   linewidth=0pt,
@@ -221,7 +218,7 @@ or any later version published by the Free Software Foundation.
 
 \VerbatimFootnotes
 
-\title{optics --- une bibliothèque tikz pour les schémas d'optique}
+\title{optics --- A Ti\emph{k}Z library for optical schematics}
 \author{Michel Fruchart \\
 \href{mailto:michel (dot) fruchart [at] ens-lyon (dot) org}{\texttt{michel (dot) fruchart [at] ens-lyon (dot) org}}}
 
@@ -232,26 +229,26 @@ or any later version published by the Free Software Foundation.
 
 \section{Introduction}
 
-Le but de cette bibliothèque est de permettre de facilement faire des schémas optiques avec tikz, c'est-à-dire de dessiner lentilles, miroirs, etc. Le tracé géométriquement correct (ou non) des rayons est laissé à l'utilisateur.
+The purpose of this library is to make it easy to make optical diagrams with tikz, that is, to draw lenses, mirrors, etc. The geometrically correct alignment (or not) of the rays is left to the user.
 
 \subsection{Legal matters}
 
-Cette bibliothèque peut être distribuée et modifiée sous les conditions de la licence LaTeX Project Public License (LPPL), version 1.3c\footnote{\url{http://latex-project.org/lppl/lppl-1-3c.txt}}. Elle peut aussi être distribuée et modifiée sous les conditions de la licence GNU General Public License (GNU GPL), soit la version 2\footnote{\url{http://www.gnu.org/licenses/gpl-2.0.en.html}}, soit toute version ultérieure publiée par la Free Software Foundation. Sa documentation, que vous êtes en train de lire, peut être distribuée sous les conditions de la licence LaTeX Project Public License (LPPL), version 1.3c\footnote{\url{http://latex-project.org/lppl/lppl-1-3c.txt}}. Elle peut aussi être distribuée et modifiée sous les conditions de la licence GNU Free Documentation License (GNU FDL), soit la version 1.3\footnote{\url{https://www.gnu.org/licenses/fdl-1.3.en.html}}, soit toute version ultérieure publiée par la Free Software Foundation.
+This library can be distributed and modified under the terms of the LaTeX Project Public License (LPPL), version 1.3c \ footnote {\ url {http://latex-project.org/lppl/lppl-1-3c.txt} }. It can also be distributed and modified under the terms of the GNU General Public License (GNU GPL), version 2 \footnote {\url{http://www.gnu.org/licenses/gpl-2.0.en.html}}, any later version published by the Free Software Foundation. Its documentation, which you are reading, may be distributed under the terms of the LaTeX Project Public License (LPPL), version 1.3c \footnote {\url{http://latex-project.org/lppl/lppl-1-3c.txt}}. It can also be distributed and modified under the terms of the GNU Free Documentation License (GNU FDL), version 1.3 \footnote{\url{https://www.gnu.org/licenses/fdl-1.3.en.html}}, or any later version published by the Free Software Foundation.
 
-\subsection{Installation de la bibliothèque}
+\subsection{Installing the library}
 
-Cette bibliothèque est une \enquote{bibliothèque tikz}. Il y a deux façons de l'utiliser :
+This library is a \enquote{tikz library}. There are two ways to use it:
 \begin{itemize}
-  \item en ajoutant le fichier |tikzlibraryoptics.code.tex| dans un dossier où \TeX{} peut le trouver, par exemple dans votre dossier |TEXMFHOME|\footnote{Pour savoir où il se trouve, on peut utiliser la commande \verb|kpsewhich -var-value TEXMFHOME|. }, puis en utilisant la commande |\usetikzlibrary{optics}| ;
-  \item en incluant directement le fichier |tikzlibraryoptics.code.tex| contenant la bibliothèque grâce à la commande |\input|.
+  \item By adding the file |tikzlibraryoptics.code.tex| to a folder where \TeX{} can find it, for example in your folder |TEXMFHOME| \footnote{To know where it is, you can use the command \verb|kpsewhich -var-value TEXMFHOME|.}, and then utilize the command |\usetikzlibrary{optics}| ;
+  \item By directly including the file |tikzlibraryoptics.code.tex| containing the library with the |\input| command.
 \end{itemize}
 
-Si la bibliothèque est placée dans un dossier |TEXMF|, disons |/home/agamemnon/texmf/|, il faut respecter la structure TDS de ces répertoires\footnote{Voir par exemple \url{https://www.ctan.org/TDS-guidelines}}. En pratique, le fichier |tikzlibraryoptics.code.tex| doit être placé dans le dossier |home/agamemnon/texmf/tex/latex/|, ou dans un sous-dossier comme |home/agamemnon/texmf/tex/latex/tikzoptics|. Le plus simple est d'utiliser le contenu de l'archive |tikzoptics.tds.zip|, qui est structuré comme il se doit et peut directement être ajouté dans le dossier |TEXMF| (comme |/home/agamemnon/texmf/|).
+If the library is placed in a |TEXMF| folder, say |/home/agamemnon/texmf/|, you must respect the TDS structure of these directories \footnote{See for example \url{https://www.ctan.org/TDS-guidelines}}. In practice, the file |tikzlibraryoptics.code.tex| must be placed in the |home/agamemnon/texmf/tex/latex/| folder, or in a subfolder such as |home/agamemnon/texmf/tex/latex/tikzoptics|. The easiest way is to use the contents of the |tikzoptics.tds.zip| archive, which is structured as it should be and can be added directly to the |TEXMF| tree (like |/home/agamemnon/texmf/|).\footnote{Note that this advice - especially the file paths - is valid for Linux.}
 
-\subsection{Utilisation de la bibliothèque}
+\subsection{Using the library}
 
 \begin{key}{/tikz/use optics}
-Après avoir installé la bibliothèque, il suffit de la charger grace à la commande |\usetikzlibrary{optics}|, puis d'utiliser l'option |use optics| sur une |tikzpicture| pour pouvoir utiliser les commandes\footnote{L'option \texttt{use optics} charge les éléments pertinents de \texttt{/tikz/optics/} dans \texttt{/tikz/}, ce qui permet de les utiliser directement. Séparer a priori les commandes dans des espaces de noms différents permet de réduire le risque de collision de noms.}
+After installing the library, just load it with the command |\usetikzlibrary{optics}|, then use the option |use optics| on a |tikzpicture| to be able to use the commands.\footnote{The option \texttt{use optics} loads the relevant elements of \texttt{/tikz/optics/} into \texttt{/tikz/}, to permit direct utilization. Separating commands in different namespaces a priori reduces the risk of name collisions.}
 
 \begin{codeexample}[width=5cm]
 \begin{tikzpicture}[use optics]
@@ -260,7 +257,7 @@ Après avoir installé la bibliothèque, il suffit de la charger grace à la com
 \end{tikzpicture}
 \end{codeexample}
 
-Si l'option |use optics| n'est pas utilisée, le code plantera lamentablement (dans les cas favorables) ou aura un comportement inattendu (dans les cas moins favorables).
+If the option |use optics| is not used, the code will crash horribly (in the best cases) or will behave unexpectedly (in the worse cases).
 \end{key}
 
 \subsection{Élements sur les \texttt{node} de tikz et leur placement}
