@@ -2267,9 +2267,11 @@ or any later version published by the Free Software Foundation.
   label'/.code={\pgfkeys{/tikz/dim arrow/label text=#1,/tikz/dim arrow/label style/.append style={swap},}},
   label text/.initial={},
   label style/.style={},
-  label near start/.code={\def\dimarrow@short@position{0}}, % only short
-  label near middle/.code={\def\dimarrow@short@position{2}}, % only short
-  label near end/.code={\def\dimarrow@short@position{1}}, % only short
+  % /tikz/dim arrow/label pos is only for the (non short) dim arrows ; \dimarrow@short@position is only for the short version
+  label pos/.initial={0.5}, 
+  label near start/.code={\pgfkeys{/tikz/dim arrow/label pos=0} \def\dimarrow@short@position{0}}, 
+  label near middle/.code={\pgfkeys{/tikz/dim arrow/label pos=0.5} \def\dimarrow@short@position{2}}, 
+  label near end/.code={\pgfkeys{/tikz/dim arrow/label pos=1} \def\dimarrow@short@position{1}}, 
   arrow length/.initial={5mm}, % only for short
   arrow style/.style={|<->|}, % this is modified by [left/right dim arrow]
   ->/.code={\tikzset{/tikz/dim arrow/arrow style/.style={|->|}}},
@@ -2336,7 +2338,7 @@ or any later version published by the Free Software Foundation.
     \path let 
         \p1=($(\tikztostart)!\labelTotalRaise!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\labelTotalRaise!-90:(\tikztostart)$)
-        in (\p1) -- (\p2) node[pos=0.5,auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
+        in (\p1) -- (\p2) node[pos=\pgfkeysvalueof{/tikz/dim arrow/label pos},auto=left,/tikz/dim arrow/label style] {\pgfkeysvalueof{/tikz/dim arrow/label text}};
     % rq : inner sep controle la distance chemin-node
         \endpgfinterruptpath
       }(\tikztostart) (\tikztotarget) \tikztonodes

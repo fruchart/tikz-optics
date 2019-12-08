@@ -2199,6 +2199,32 @@ Commençons par un exemple.
 \end{codeexample}
   \end{stylekey}
 
+  \begin{key}{/tikz/dim arrow/label pos=\meta{number} (initially \pgfkeysvalueof{/tikz/dim arrow/label pos})}
+  La clé |label pos| permet de spécifier la position \meta{number} à laquelle le label doit être dessiné.
+  Cette clé ne s'applique pas à |short dim arrow|.
+
+\begin{codeexample}[]
+\begin{tikzpicture}
+  \node[rectangle, draw=black, fill=yellow!30, minimum width=2cm, minimum height=0.5cm] (R) at (0,0) {};
+
+  \draw (R.north west) 
+    to[dim arrow={label=$\ell$, label pos=0.25}] (R.north east);
+\end{tikzpicture}
+\end{codeexample}
+  \end{key}
+
+  \begin{key}{/tikz/dim arrow/label near start}
+  Equivalent à |label pos=0|.
+  \end{key}
+
+  \begin{key}{/tikz/dim arrow/label near middle}
+  Equivalent à |label pos=0.5|.
+  \end{key}
+
+  \begin{key}{/tikz/dim arrow/label near end}
+  Equivalent à |label pos=1|.
+  \end{key}
+
   \begin{key}{/tikz/dim arrow/raise=\meta{length} (initially \pgfkeysvalueof{/tikz/dim arrow/raise})}
   La clé |raise| permet de spécifier la distance \meta{length} à laquelle doit être dessinée la flèche de dimension par rapport au chemin initial.
   \begin{codeexample}[]
