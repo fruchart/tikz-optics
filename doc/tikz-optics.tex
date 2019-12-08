@@ -2216,6 +2216,25 @@ Commençons par un exemple.
   \begin{stylekey}{/tikz/dim arrow/no raise}
   Équivalent à |raise=0|. (Est-ce bien utile ?)
   \end{stylekey}
+
+  \begin{key}{/tikz/dim arrow/->}
+  Quand la clé |->| est utilisée, une flèche n'est dessinée que d'un côté (sélectionné de la même manière qu'avec la clé |->| de tikz), par exemple pour marquer une grandeur algébrique.
+  \begin{codeexample}[]
+\begin{tikzpicture}
+  \node[rectangle, draw=black, fill=yellow!30, minimum width=1cm, minimum height=1cm] (R) at (0,0) {};
+
+  \draw (R.north east) 
+    to[dim arrow={->, label=$\overline{L}$, raise=0.5cm}] (R.south east);
+  \draw (R.north west) 
+    to[dim arrow={<-, label'=$\overline{H}$, raise=-0.5cm}] (R.south west);
+\end{tikzpicture}
+\end{codeexample}
+  \end{key}
+
+    \begin{key}{/tikz/dim arrow/<-}
+  Similaire à la clé |/tikz/dim arrow/->|, mais dans l'autre sens.
+  \end{key}
+
 \end{stylekey}
 
 \begin{stylekey}{/tikz/dim arrow'=\meta{sous-clés}}

@@ -2271,6 +2271,10 @@ or any later version published by the Free Software Foundation.
   label near middle/.code={\def\dimarrow@short@position{2}}, % only short
   label near end/.code={\def\dimarrow@short@position{1}}, % only short
   arrow length/.initial={5mm}, % only for short
+  arrow style/.style={|<->|}, % this is modified by [left/right dim arrow]
+  ->/.code={\tikzset{/tikz/dim arrow/arrow style/.style={|->|}}},
+  <-/.code={\tikzset{/tikz/dim arrow/arrow style/.style={|<-|}}},
+  <->/.code={\tikzset{/tikz/dim arrow/arrow style/.style={|<->|}}},
   draw short dim arrow/.style={to path={\pgfextra{%
     \let\tikz@mode@save=\tikz@mode%
         \let\tikz@options@save=\tikz@options%
@@ -2324,7 +2328,7 @@ or any later version published by the Free Software Foundation.
     \newdimen\labelTotalRaise
     \pgfmathsetlength\labelTotalRaise{\pgfkeysvalueof{/tikz/dim arrow/raise}}
         \pgfinterruptpath
-        \draw[>=technical,|<->|] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
+        \draw[>=technical,/tikz/dim arrow/arrow style] \pgfextra{\let\tikz@mode=\tikz@mode@save\let\tikz@options=\tikz@options@save}
     let 
         \p1=($(\tikztostart)!\pgfkeysvalueof{/tikz/dim arrow/raise}!90:(\tikztotarget)$),
         \p2=($(\tikztotarget)!\pgfkeysvalueof{/tikz/dim arrow/raise}!-90:(\tikztostart)$)
