@@ -2353,6 +2353,58 @@ Commençons par un exemple.
   \end{codeexample}
 \end{stylekey}
 
+
+
+\begin{stylekey}{/tikz/pics/optics eye}
+La pic |optics eye| permet de dessiner un œil stylisé. 
+Remarquez que |optics eye| n'est pas une |shape|, mais une |pic| (lire le manuel de pgf/tikz pour plus de détails).
+
+\begin{codeexample}[]
+\begin{tikzpicture}[use optics]
+  \node[mirror,rotate=-90] (M) at (0,0) {};
+
+  \pgfmathsetmacro\rayangle{70}
+  \draw[red,->-] ($(M.center)+({90+\rayangle}:1.5cm)$) -- (M.center);
+  \draw[red,->-] (M.center) -- ($(M.center)+({90-\rayangle}:1.5cm)$) 
+    coordinate (out) {};
+  \pic[rotate={90-\rayangle}] (eye) at (out) {optics eye};
+\end{tikzpicture}
+\end{codeexample}
+
+
+La manière dont l'oeil est dessiné peut-être modifiée en utilisant |optics eye={\meta{styles}}|.
+En particulier, les styles |pupil|, |cornea|, |iris| et |contour| peuvent être modifiés (par exemple avec |append style|).
+
+\begin{codeexample}[]
+\begin{tikzpicture}[use optics]
+\pic (colorful eye) {optics eye={
+cornea/.append style={red, fill=red!10},
+iris/.append style={blue, fill=blue!10},
+pupil/.append style={orange},
+contour/.append style={green!60!black},
+}};
+\end{tikzpicture}
+\end{codeexample}
+
+Lorsqu'une pic |optics eye| est ajoutée au point |(0,0)|, l'œil dessiné est déplacé de la longueur |optics eye/shift| de manière à ce que les rayons lumineux ne touchent pas l'œil. Cette distance peut être modifiée en utilisant |optics eye={shift=\meta{length}}|.
+Deux coordonnées |(\meta{name}-in)| et |(\meta{name}-center)| sont créées, où \meta{name} est le nom de la pic. Par exemple |\pic (eye) at (0,0) {optics eye};| produira les coordonnées |(eye-in)| [à |(0,0)|] et |(eye-center)|. Ces points sont séparés de |optics eye/shift| et leurs positions sont expliquées dans la figure ci-dessous.
+
+\begin{tikzpicture}[use optics]
+\pic[scale=3, ultra thick] (eye) at (0,0) {optics eye={
+shift=0.25cm
+}};
+\begin{scope}[every node/.append style={cross out,draw,inner sep=0pt,minimum width=4pt,minimum height=4pt}]
+\node[red, thick] at (eye-in) {};
+\node[orange, thick] at (eye-center) {};
+\end{scope}
+\draw[/tikz/dim arrow/label style/.append style={below=0.2cm}] (eye-in) to[dim arrow={raise=-1.25cm, label'={\texttt{optics eye/shift}}}] (eye-center);
+
+\draw[shorten <=0.2cm,<-,>=latex] (eye-in) -- +(120:1cm) node[above] {\texttt{(0,0)}};
+\end{tikzpicture}
+
+\end{stylekey}
+
+
 \section{Remerciements}
 
 Je remercie les collègues et amis qui ont essuyé les plâtres en utilisant les premières versions de cette bibliothèque, et en particulier les auteurs du livre \emph{Physique expérimentale}\footnote{\url{http://www.physique-experimentale.com/}} pour lequel la bibliothèque a été développée.
