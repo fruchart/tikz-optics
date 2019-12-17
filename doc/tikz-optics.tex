@@ -651,9 +651,7 @@ Le code servant à générer cette figure étant un peu long, je ne l'ai pas inc
 
 \subsection{Image d'une fente sur un écran}
 
-Reproduisons un schéma optique simple (qu'il faudrait que je scanne).
-
-La première étape est de placer tous les éléments. On commence de manière très logique par la lampe, qu'on place en |(0,0)|. Ensuite, tous les éléments sont placé à droite les uns des autres. Par exemple, l'anticalorique est placé à |0.5cm| de la sortie de la lampe (ancre |aperture east| de la |node| |QI|) par l'option |right=0.5cm of (QI.aperture east)|. L'écran et la lentille sont situés relativement à la fente parce que j'ai jugé ça plus pratique pour les modifier indépendamment, mais ce genre de choix dépend de l'humeur et de la situation. J'ai nommé les différents éléments de manière peu cohérente pour souligner que les noms des |nodes| sont très libres : on peut y mettre des espaces, des accents\footnote{Vous remarquerez que je n'utilise pas d'accents dans les exemples de code. C'est parce que le code qui traite ces exemples n'est pas capable de les traiter. Par contre, il n'y a aucun problème à les utiliser dans tikz (une |node| peut s'appeler \texttt{(écran)} sans aucun problème, par exemple).}, etc. Il faut juste éviter d'y mettre de point, virgule, double-point, etc. qui ont un sens particulier (le point sépare le nom d'une |node| de celui de l'ancre visée, par exemple).
+La première étape est de placer tous les éléments. On commence de manière très logique par la lampe, qu'on place en |(0,0)|. Ensuite, tous les éléments sont placés à droite les uns des autres. Par exemple, l'anticalorique est placé à |0.5cm| de la sortie de la lampe (ancre |aperture east| de la |node| |quartz iode|) par l'option |right=0.5cm of (quartz iode.aperture east)|. L'écran et la lentille sont situés relativement à la fente parce que j'ai jugé ça plus pratique pour les modifier indépendamment, mais ce genre de choix dépend de l'humeur et de la situation. J'ai nommé les différents éléments de manière peu cohérente pour souligner que les noms des |nodes| sont très libres : on peut y mettre des espaces, des accents\footnote{Vous remarquerez que je n'utilise pas d'accents dans les exemples de code. C'est parce que le code qui traite ces exemples n'est pas capable de les traiter. Par contre, il n'y a aucun problème à les utiliser dans tikz (une |node| peut s'appeler \texttt{(écran)} sans aucun problème, par exemple).}, etc. Il faut juste éviter d'y mettre de point, virgule, double-point, etc. qui ont un sens particulier (le point sépare le nom d'une |node| de celui de l'ancre visée, par exemple).
 
 \begin{codeexample}[width=5cm]
 \begin{tikzpicture}[use optics]
@@ -860,6 +858,36 @@ Cet exemple utilise des intersections pour tracer des rayons lumineux : la synta
 Cet exemple est aussi l'occasion de montrer l'utilisation du package \texttt{ocgx} avec \texttt{tikz}.
 Le code de la figure est dans le fichier \textattachfile[]{birefringence_michelson.pgf}{birefringence\_michelson.pgf}.
 
+\subsection{Un mirage}
+
+\begin{codeexample}[]
+\begin{tikzpicture}[use optics]
+  \pgfmathsetmacro\thetaA{110}
+  \pgfmathsetmacro\thetaB{65}
+  \pgfmathsetmacro\thetaP{100}
+  \pgfmathsetmacro\thetaQ{70}
+  \pgfmathsetmacro\deltaTheta{5}
+  \newdimen\radius
+  \pgfmathsetlength\radius{10cm}
+
+  \newdimen\height
+  \pgfmathsetlength\height{0.4cm}
+
+  \draw[thick, pattern=north east lines, pattern color=gray] (0,0) 
+    arc [start angle=\thetaA, end angle=\thetaB, radius=\radius];
+  \path (0,0) arc [start angle=\thetaA, end angle=\thetaP, radius=\radius] coordinate (P);
+  \path (0,0) arc [start angle=\thetaA, end angle=\thetaQ, radius=\radius] coordinate (Q);
+  \coordinate (QE) at ($(Q)+(\thetaQ:\height)$);
+
+  \node[circle, draw,fill,red, inner sep=0, minimum size=0.1cm] at (P) {};
+  \draw[red,->-={at=0.65}] (P) to[out={\thetaP-90}, in={\thetaQ+\deltaTheta+90}] (QE);
+  \pic[scale=0.75,rotate={\thetaQ+\deltaTheta-90}] (eye) at (QE) {optics eye};
+
+  \pgfmathsetmacro\thetaTangential{86}
+  \path (0,0) arc [start angle=\thetaA, end angle=\thetaTangential, radius=\radius] coordinate (H);
+  \draw[densely dashed,shorten >=-3cm] (eye-in) -- (H);
+\end{tikzpicture}
+\end{codeexample}
 
 \section{Référence}
 
@@ -1185,8 +1213,6 @@ node[\placement] {\scriptsize\texttt{(s.\anchor)}};
 \end{tikzpicture}
 \end{codeexample}
 
-La clé |focus| a pour synonyme |focal point|.
-
 \end{shape}
 
 \subsubsection{Miroir sphérique}
@@ -1255,7 +1281,7 @@ Il peut être utile de spécifier non pas l'angle d'ouverture, mais le rayon de 
 
 
 \begin{key}{/tikz/optics/spherical mirror orientation=\meta{type} (initially |ltr|)}
-    La clé |spherical mirror orientation| contrôle l'orientation de miroir (i.e. dans quel sens on suppose que la lumière se propage). Les valeurs possibles sont |ltr| (\enquote{left to right}) et |rtl| (\enquote{right to left}).
+    La clé |spherical mirror orientation| contrôle l'orientation du miroir (i.e. dans quel sens on suppose que la lumière se propage). Les valeurs possibles sont |ltr| (\enquote{left to right}) et |rtl| (\enquote{right to left}).
 
 \begin{codeexample}[width=5cm]
 \begin{tikzpicture}[use optics]
@@ -1417,7 +1443,7 @@ Dessine un prisme à vision directe (double prisme d'Amici).
 
 
 \begin{key}{/tikz/optics/prism apex angle=\meta{angle} (initially \pgfkeysvalueof{/tikz/optics/prism apex angle})}
-    La clé |prism apex angle| contrôle l'angle au sommet des trois prismes identiques. \meta{angle} est exprimé en degrés. Si \meta{angle} vaut |60|, les prismes sont des triangles isocèles.
+    La clé |prism apex angle| contrôle l'angle au sommet des trois prismes identiques. \meta{angle} est exprimé en degrés. Si \meta{angle} vaut |60|, les prismes sont des triangles equilatéraux.
 
     \begin{codeexample}[width=5cm]
 \begin{tikzpicture}[use optics,scale=.5]
@@ -2162,7 +2188,7 @@ Commençons par un exemple.
   La flèche de dimension est décalée par rapport aux positions de départ et d'arrivée de manière à ne pas se superposer
   à l'objet dont on veut marquer la dimension.
 
-  Plusieurs sous-clés permettent de spécifier des options en écriant |dim arrow={|\meta{sous-clés}|}|.
+  Plusieurs sous-clés permettent de spécifier des options en écrivant |dim arrow={|\meta{sous-clés}|}|.
 
   \begin{key}{/tikz/dim arrow/label=\meta{text}}
   La clé |label| permet de spécifier le \meta{texte} à afficher sur la flèche, qui est positionné à gauche de la flèche par rapport au sens du chemin (via |/tikz/auto=left|).
