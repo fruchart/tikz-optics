@@ -106,6 +106,7 @@ or any later version published by the Free Software Foundation.
       -<<<<-/.prefix style={optics,/tikz/optics/-<<<<-={##1}},
       ->n-/.prefix style={optics,/tikz/optics/->n-={##1}},
       -<n-/.prefix style={optics,/tikz/optics/-<n-={##1}},
+      pics/optics eye/.forward to=/tikz/optics@pics/optics eye,
     }
   }
 }
@@ -2474,6 +2475,97 @@ or any later version published by the Free Software Foundation.
   \pgfpathlineto{\pgfqpoint{3\pgfutil@tempdima}{-3\pgfutil@tempdima}}%
   \pgfusepathqfill%
 }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pics
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\tikzset{/tikz/optics@pics/optics eye/.style={/tikz/pics/code={
+
+\tikzset{,
+optics eye/.cd,
+contour radius/.initial={1.25cm},
+shift/.initial={0.1cm},
+pupil/.style={draw, fill},
+cornea/.style={draw=black},
+iris/.style={draw=black},
+contour/.style={draw=black},
+#1
+}
+
+\newdimen\tikz@optics@eye@contourRadius
+\pgfmathsetlength\tikz@optics@eye@contourRadius{\pgfkeysvalueof{/tikz/optics eye/contour radius}}
+
+\newdimen\tikz@optics@eye@shift
+\pgfmathsetlength\tikz@optics@eye@shift{\pgfkeysvalueof{/tikz/optics eye/shift}}
+
+\pgfmathsetmacro\tikz@optics@eye@thetaA{225}
+\pgfmathsetmacro\tikz@optics@eye@thetaB{252}
+\pgfmathsetmacro\tikz@optics@eye@thetaP{230}
+\pgfmathsetmacro\tikz@optics@eye@deltaAnglePupil{15}
+\pgfmathsetmacro\tikz@optics@eye@deltaAngleIris{5}
+
+\pgfmathsetmacro\tikz@optics@eye@thetaAprime{180-(\tikz@optics@eye@thetaA-180)}
+\pgfmathsetmacro\tikz@optics@eye@thetaBprime{180-(\tikz@optics@eye@thetaB-180)}
+\pgfmathsetmacro\tikz@optics@eye@thetaPprime{180-(\tikz@optics@eye@thetaP-180)}
+
+
+\coordinate (optics@eye@corneaStart) at (\tikz@optics@eye@thetaP:{\tikz@optics@eye@contourRadius});
+\coordinate (optics@eye@corneaEnd) at ($(0, {2*\tikz@optics@eye@contourRadius*sin(\tikz@optics@eye@thetaB)})+(\tikz@optics@eye@thetaPprime:{\tikz@optics@eye@contourRadius})$);
+\coordinate (optics@eye@centerForCornea) at (-0.3cm, {-\tikz@optics@eye@contourRadius*abs(sin(\tikz@optics@eye@thetaB))});
+
+\newdimen\tikz@optics@eye@radiusForCornea
+\path let 
+  \p1 = ($(optics@eye@corneaStart) - (optics@eye@centerForCornea)$),
+  \p2 = ($(optics@eye@corneaEnd) - (optics@eye@centerForCornea)$),
+  \n0 = {veclen(\x1,\y1)},
+  \n1 = {atan(\y1/\x1)+180*(\x1<0)},
+  \n2 = {atan(\y2/\x2)+180*(\x2<0)}
+  in node 
+{
+  \newdimen\tempdimen
+  \pgfmathsetlength\tempdimen{\n0} 
+  \global\tikz@optics@eye@radiusForCornea=\tempdimen
+
+  \pgfmathparse{\n1} 
+  \global\let\angleoptics@eye@CorneaStart\pgfmathresult
+
+  \pgfmathparse{\n2} 
+  \global\let\angleCorneaStop\pgfmathresult
+};
+
+\path (optics@eye@corneaStart) arc (\angleoptics@eye@CorneaStart:180:\tikz@optics@eye@radiusForCornea) coordinate (optics@eye@corneaCenter);
+\coordinate (optics@eye@origin) at ($(\tikz@optics@eye@shift,0)-(optics@eye@corneaCenter)$);
+
+% anchors supposed to be accessible
+\coordinate (-center) at (\tikz@optics@eye@shift,0);
+\coordinate (-in) at (0,0);
+
+\begin{scope}[shift=(optics@eye@origin)]
+
+\path[optics eye/contour] (\tikz@optics@eye@thetaA:{\tikz@optics@eye@contourRadius}) arc (\tikz@optics@eye@thetaA:\tikz@optics@eye@thetaB:{\tikz@optics@eye@contourRadius}) arc (\tikz@optics@eye@thetaBprime:\tikz@optics@eye@thetaAprime:{\tikz@optics@eye@contourRadius});
+
+\path[optics eye/cornea] (\tikz@optics@eye@thetaP:{\tikz@optics@eye@contourRadius}) arc (\tikz@optics@eye@thetaP:\tikz@optics@eye@thetaB:{\tikz@optics@eye@contourRadius}) arc (\tikz@optics@eye@thetaBprime:\tikz@optics@eye@thetaPprime:{\tikz@optics@eye@contourRadius})  arc (\angleCorneaStop:\angleoptics@eye@CorneaStart:\tikz@optics@eye@radiusForCornea);
+
+\coordinate (optics@eye@corneaStart) at (\tikz@optics@eye@thetaP:{\tikz@optics@eye@contourRadius});
+
+\path (optics@eye@corneaStart) arc ({\angleoptics@eye@CorneaStart}:{\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAnglePupil}:\tikz@optics@eye@radiusForCornea) coordinate (optics@eye@pupilStart);
+\path (optics@eye@corneaStart) arc ({\angleoptics@eye@CorneaStart}:{\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAngleIris}:\tikz@optics@eye@radiusForCornea) coordinate (optics@eye@irisStart);
+
+\path[optics eye/iris, draw=none] (optics@eye@irisStart) arc ({\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAngleIris}:{\angleCorneaStop-\tikz@optics@eye@deltaAngleIris}:\tikz@optics@eye@radiusForCornea) to[bend right=60] (optics@eye@irisStart);
+
+\path[optics eye/pupil] (optics@eye@pupilStart) arc ({\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAnglePupil}:{\angleCorneaStop-\tikz@optics@eye@deltaAnglePupil}:\tikz@optics@eye@radiusForCornea) to[bend right=60] (optics@eye@pupilStart);
+
+\path[optics eye/iris, fill=none] (optics@eye@irisStart) arc ({\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAngleIris}:{\angleCorneaStop-\tikz@optics@eye@deltaAngleIris}:\tikz@optics@eye@radiusForCornea) to[bend right=60] (optics@eye@irisStart);
+
+
+\end{scope}
+
+}}}
 
 
 % Changelog:
