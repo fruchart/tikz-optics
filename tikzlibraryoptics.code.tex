@@ -2513,7 +2513,7 @@ contour/.style={draw=black},
 \pgfmathsetmacro\tikz@optics@eye@thetaBprime{180-(\tikz@optics@eye@thetaB-180)}
 \pgfmathsetmacro\tikz@optics@eye@thetaPprime{180-(\tikz@optics@eye@thetaP-180)}
 
-
+\begin{pgfinterruptboundingbox}
 \coordinate (optics@eye@corneaStart) at (\tikz@optics@eye@thetaP:{\tikz@optics@eye@contourRadius});
 \coordinate (optics@eye@corneaEnd) at ($(0, {2*\tikz@optics@eye@contourRadius*sin(\tikz@optics@eye@thetaB)})+(\tikz@optics@eye@thetaPprime:{\tikz@optics@eye@contourRadius})$);
 \coordinate (optics@eye@centerForCornea) at (-0.3cm, {-\tikz@optics@eye@contourRadius*abs(sin(\tikz@optics@eye@thetaB))});
@@ -2540,8 +2540,9 @@ contour/.style={draw=black},
 
 \path (optics@eye@corneaStart) arc (\angleoptics@eye@CorneaStart:180:\tikz@optics@eye@radiusForCornea) coordinate (optics@eye@corneaCenter);
 \coordinate (optics@eye@origin) at ($(\tikz@optics@eye@shift,0)-(optics@eye@corneaCenter)$);
+\end{pgfinterruptboundingbox}
 
-% anchors supposed to be accessible
+% prefixed sub-coordinates supposed to be accessible from the outside of the pic
 \coordinate (-center) at (\tikz@optics@eye@shift,0);
 \coordinate (-in) at (0,0);
 
@@ -2551,10 +2552,11 @@ contour/.style={draw=black},
 
 \path[optics eye/cornea] (\tikz@optics@eye@thetaP:{\tikz@optics@eye@contourRadius}) arc (\tikz@optics@eye@thetaP:\tikz@optics@eye@thetaB:{\tikz@optics@eye@contourRadius}) arc (\tikz@optics@eye@thetaBprime:\tikz@optics@eye@thetaPprime:{\tikz@optics@eye@contourRadius})  arc (\angleCorneaStop:\angleoptics@eye@CorneaStart:\tikz@optics@eye@radiusForCornea);
 
+\begin{pgfinterruptboundingbox}
 \coordinate (optics@eye@corneaStart) at (\tikz@optics@eye@thetaP:{\tikz@optics@eye@contourRadius});
-
 \path (optics@eye@corneaStart) arc ({\angleoptics@eye@CorneaStart}:{\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAnglePupil}:\tikz@optics@eye@radiusForCornea) coordinate (optics@eye@pupilStart);
 \path (optics@eye@corneaStart) arc ({\angleoptics@eye@CorneaStart}:{\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAngleIris}:\tikz@optics@eye@radiusForCornea) coordinate (optics@eye@irisStart);
+\end{pgfinterruptboundingbox}
 
 \path[optics eye/iris, draw=none] (optics@eye@irisStart) arc ({\angleoptics@eye@CorneaStart+\tikz@optics@eye@deltaAngleIris}:{\angleCorneaStop-\tikz@optics@eye@deltaAngleIris}:\tikz@optics@eye@radiusForCornea) to[bend right=60] (optics@eye@irisStart);
 
