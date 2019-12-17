@@ -241,6 +241,9 @@ Cette bibliothèque peut être distribuée et modifiée sous les conditions de l
 
 \subsection{Installation de la bibliothèque}
 
+Si vous avez une installation Texlive à jour, la librairie |tikz-optics| devrait déjà être installée. 
+Pour le vérifier, essayez d'utiliser la commande |\usetikzlibrary{optics}| dans un fichier \TeX{} (après avoir chargé tikz). Si cela ne marche pas, il vous faut mettre à jour votre installation \TeX{}, ou bien installer la librairie manuellement (comme expliqué ci-dessous).
+
 Cette bibliothèque est une \enquote{bibliothèque tikz}. Il y a deux façons de l'utiliser : 
 \begin{itemize}
   \item en ajoutant le fichier |tikzlibraryoptics.code.tex| dans un dossier où \TeX{} peut le trouver, par exemple dans votre dossier |TEXMFHOME|\footnote{Pour savoir où il se trouve, on peut utiliser la commande \verb|kpsewhich -var-value TEXMFHOME|. }, puis en utilisant la commande |\usetikzlibrary{optics}| ;
